@@ -4,6 +4,7 @@ import './App.css'
 import cv, { Mat } from 'opencv-ts'
 
 function App() {
+    const [cvLoad, setCvLoad] = useState(false)
     const ref = useRef<HTMLVideoElement | null>(null)
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
     const [margin, setMargin] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
@@ -11,6 +12,10 @@ function App() {
     const height = 200
 
     useEffect(() => {
+        cv.onRuntimeInitialized = () => {
+            setCvLoad(true)
+        }
+
         // alert('useEffect')
         navigator.mediaDevices.enumerateDevices().then(function (devices) {
             let id = ''
@@ -33,6 +38,16 @@ function App() {
     return (
         <div className='App'>
             <header className='App-header'>
+                <div
+                    style={{
+                        position: 'absolute',
+                        width: '10px',
+                        height: '10px',
+                        backgroundColor: !cvLoad ? 'red' : 'greenyellow',
+                        left: 0,
+                        top: 0,
+                    }}
+                ></div>
                 <div
                     style={{
                         position: 'relative',
@@ -75,7 +90,10 @@ function App() {
                 </div>
                 <button
                     onClick={() => {
-                        if (canvasRef.current && ref.current) {
+                        const wrapper = document.getElementById('wrapper')
+
+                        if (canvasRef.current && ref.current && wrapper) {
+                            wrapper.innerHTML = ''
                             const canvas = canvasRef.current
                             const video = ref.current
 
@@ -84,13 +102,6 @@ function App() {
                             const context = canvas.getContext('2d')
                             if (context) {
                                 context.drawImage(video, 0, 0)
-
-                                const imgData = context.getImageData(
-                                    canvas.width / 2 - 100,
-                                    canvas.height / 2 - 100,
-                                    200,
-                                    200
-                                )
 
                                 let src = cv.imread(canvas)
 
@@ -102,39 +113,81 @@ function App() {
                                 )
                                 src = src.roi(rect)
 
-                                cv.imshow(canvas, src)
+                                cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0)
+                                cv.threshold(src, src, 120, 255, cv.THRESH_BINARY)
 
-                                // let pixels = imgData.data
+                                // let M = new cv.Mat.ones(2, 2, cv.CV_8U)
+                                // let anchor = new cv.Point(-1, -1)
 
-                                // for (var i = 0; i < pixels.length; i += 4) {
+                                // cv.erode(
+                                //     src,
+                                //     src,
+                                //     M,
+                                //     anchor,
+                                //     1,
+                                //     cv.BORDER_CONSTANT,
+                                //     cv.morphologyDefaultBorderValue()
+                                // )
 
-                                //   let lightness = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+                                let contours = new cv.MatVector()
+                                let hierarchy = new cv.Mat()
 
-                                //   lightness = lightness > 120 ? 255 : 0
+                                cv.findContours(
+                                    src,
+                                    contours,
+                                    hierarchy,
+                                    cv.RETR_TREE,
+                                    cv.CHAIN_APPROX_SIMPLE
+                                )
 
-                                //   pixels[i] = lightness;
-                                //   pixels[i + 1] = lightness;
-                                //   pixels[i + 2] = lightness;
+                                for (let i = 0; i < contours.size(); i++) {
+                                    const { x, y, width, height } = cv.boundingRect(contours.get(i))
 
-                                // }
 
-                                // context.clearRect(0, 0, canvas.width, canvas.height)
-                                // context.putImageData(imgData, 0, 0)
+
+                                    if (hierarchy.intPtr(0, i)[3] === -1) continue
+
+                                    hierarchy.intPtr(0, i)[3] === 0 &&
+                                        alert(hierarchy.intPtr(0, i)[3] === 0)
+                                    // alert(hierarchy.intPtr(0, i)[3]);
+                                    const rect = new cv.Rect(x, y, width, height)
+                                    const lupa = src.roi(rect)
+
+                                    const cnv = document.createElement('canvas')
+                                    cv.imshow(cnv, lupa)
+
+                                    wrapper.append(cnv)
+
+                      
+                                }
+
+                
                             }
 
-                            // let canvas = document.getElementById(canvasInputId)
-                            // let ctx = canvas.getContext('2d')
-                            // let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
                         }
                     }}
                 >
                     Screen
                 </button>
-                <canvas
+                <div
+                    id='wrapper'
+                    style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        width: '100vw',
+                    }}
+                ></div>
+                {/* <canvas
                     style={{
                         position: 'absolute',
                         left: 'calc(50vw - 100px)',
                         bottom: 0,
+                    }}
+                    ref={canvasRef}
+                ></canvas> */}
+                <canvas
+                    style={{
+                        display: 'none',
                     }}
                     ref={canvasRef}
                 ></canvas>
