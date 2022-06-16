@@ -1,6 +1,7 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import logo from './logo.svg'
+import React, { useEffect, useRef, useState } from 'react'
 import './App.css'
+
+import cv, { Mat } from 'opencv-ts'
 
 function App() {
     const ref = useRef<HTMLVideoElement | null>(null)
@@ -60,6 +61,17 @@ function App() {
                         }}
                         autoPlay
                     ></video>
+                    <div
+                        style={{
+                            backgroundColor: 'transparent',
+                            width: '70px',
+                            height: '30px',
+                            position: 'absolute',
+                            top: 'calc(50% - 15px)',
+                            left: 'calc(50% - 35px)',
+                            border: '2px solid lightgreen',
+                        }}
+                    ></div>
                 </div>
                 <button
                     onClick={() => {
@@ -69,13 +81,63 @@ function App() {
 
                             canvas.width = video.videoWidth
                             canvas.height = video.videoHeight
-                            canvas.getContext('2d')?.drawImage(video, 0, 0)
+                            const context = canvas.getContext('2d')
+                            if (context) {
+                                context.drawImage(video, 0, 0)
+
+                                const imgData = context.getImageData(
+                                    canvas.width / 2 - 100,
+                                    canvas.height / 2 - 100,
+                                    200,
+                                    200
+                                )
+
+                                let src = cv.imread(canvas)
+
+                                const rect = new cv.Rect(
+                                    canvas.width / 2 - 100,
+                                    canvas.height / 2 - 100,
+                                    width,
+                                    height
+                                )
+                                src = src.roi(rect)
+
+                                cv.imshow(canvas, src)
+
+                                // let pixels = imgData.data
+
+                                // for (var i = 0; i < pixels.length; i += 4) {
+
+                                //   let lightness = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+
+                                //   lightness = lightness > 120 ? 255 : 0
+
+                                //   pixels[i] = lightness;
+                                //   pixels[i + 1] = lightness;
+                                //   pixels[i + 2] = lightness;
+
+                                // }
+
+                                // context.clearRect(0, 0, canvas.width, canvas.height)
+                                // context.putImageData(imgData, 0, 0)
+                            }
+
+                            // let canvas = document.getElementById(canvasInputId)
+                            // let ctx = canvas.getContext('2d')
+                            // let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
                         }
                     }}
                 >
                     Screen
                 </button>
-                <canvas ref={canvasRef}></canvas>
+                <canvas
+                    style={{
+                        position: 'absolute',
+                        left: 'calc(50vw - 100px)',
+                        bottom: 0,
+                    }}
+                    ref={canvasRef}
+                ></canvas>
             </header>
         </div>
     )
