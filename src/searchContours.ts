@@ -5,10 +5,15 @@ import * as tf from '@tensorflow/tfjs'
 const difference = (x1: number, x2: number) =>
     x1 > x2 ? ((x1 - x2) / x2) * 100 : x1 < x2 ? ((x2 - x1) / x1) * 100 : 0
 
-export const searchContours = (src: Mat, setImages: (mar: Mat[]) => void) => {
-    const images: Mat[] = []
+export const searchContours = (
+    src: Mat,
+    setImages: (mar: { name: string; value: Mat }[]) => void
+) => {
+    const images: { name: string; value: Mat }[] = []
 
-    tf.loadLayersModel('https://192.168.8.136:3000/model.json').then(model => {
+    tf.loadLayersModel('https://192.168.0.104:3000/model.json').then(model => {
+        const time = performance.now()
+
         // alert('Start')
         const threshold = new cv.Mat()
 
@@ -23,7 +28,7 @@ export const searchContours = (src: Mat, setImages: (mar: Mat[]) => void) => {
 
             const asd: Mat = new cv.Mat()
             threshold.copyTo(asd)
-            images.push(asd)
+            images.push({ name: thresh.toString(), value: asd })
 
             let contours = new cv.MatVector()
             let hierarchy = new cv.Mat()
@@ -40,7 +45,7 @@ export const searchContours = (src: Mat, setImages: (mar: Mat[]) => void) => {
 
                 const { x, y, width, height } = cv.boundingRect(contours.get(i))
 
-                if (height < 20 && width < 20) continue
+                if (height < 10 && width < 10) continue
 
                 rects.push({ x: x, y: y, width, height })
             }
@@ -52,16 +57,26 @@ export const searchContours = (src: Mat, setImages: (mar: Mat[]) => void) => {
                 return (bottomA >= b.y && a.y <= bottomB ? 0 : a.y - b.y) || a.x - b.x
             })
 
+            // for (let i = 0; i < rects.length; i++) {
+            //     const { x, y, height, width } = rects[i]
+            //     const rect = new cv.Rect(x, y, width, height)
+            //     const number = threshold.roi(rect)
+            //     const asd: Mat = new cv.Mat()
+            //     number.copyTo(asd)
+            //     images.push(asd)
+            // }
+
             let startIndex = 0
             let count = 0
-
+            let asds = 0
             for (let i = 0; i < rects.length; i++) {
                 const { y, height } = rects[i]
 
                 if (count) {
                     const rect = rects[i - 1]
 
-                    if (rect.y + rect.height > y && difference(rect.height, height) < 10) {
+                    if (rect.y + rect.height > y) {
+                        asds++
                         count++
                     } else {
                         if (count >= 4 && count <= 6) {
@@ -77,6 +92,7 @@ export const searchContours = (src: Mat, setImages: (mar: Mat[]) => void) => {
                 }
             }
             const splice = rects.splice(startIndex, count)
+            // alert(asds)
 
             if (splice.length) {
                 const tensors: tf.Tensor<tf.Rank>[] = []
@@ -92,8 +108,9 @@ export const searchContours = (src: Mat, setImages: (mar: Mat[]) => void) => {
 
                     //~~~~~~~~~~~~~~~~~~~~~~~~
 
-                    cv.resize(number, number, new cv.Size(30, 30), 1, 1, cv.INTER_AREA)
-                    images.push(number)
+                    // cv.resize(number, number, new cv.Size(30, 30), 1, 1, cv.INTER_AREA)
+
+                    // images.push({ name: 'a', value: number })
 
                     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -101,10 +118,14 @@ export const searchContours = (src: Mat, setImages: (mar: Mat[]) => void) => {
                     // alert('for')
                     // alert(number.rows + ' ' + number.cols)
 
-                    for (let row = 0; row < number.rows; row++) {
+                    for (let row = 0; row < 30; row++) {
                         const newRow: number[][] = []
-                        for (let col = 0; col < number.cols; col++) {
-                            newRow.push([number.ucharPtr(row, col)[0] / 255])
+                        for (let col = 0; col < 30; col++) {
+                            if (row >= number.rows || col >= number.cols) {
+                                newRow.push([1])
+                            } else {
+                                newRow.push([number.ucharPtr(row, col)[0] / 255])
+                            }
                         }
                         normal.push(newRow)
                     }
@@ -127,6 +148,23 @@ export const searchContours = (src: Mat, setImages: (mar: Mat[]) => void) => {
                 for (let i = 0; i < argMax.length; i++) {
                     const element = argMax[i]
                     num.push(element)
+
+                    const { x, y, width, height } = splice[i]
+                    const rect = new cv.Rect(x, y, width, height)
+
+                    const number = new cv.Mat()
+                    threshold.roi(rect).copyTo(number)
+
+                    const back = new cv.Mat(30, 30, cv.CV_8UC1, new cv.Scalar(255))
+
+                    for (let row = 0; row < number.rows; row++) {
+                        for (let col = 0; col < number.cols; col++) {
+                            back.ucharPtr(row, col)[0] = number.ucharPtr(row, col)[0]
+                        }
+                    }
+                    //  cv.resize(number, number, new cv.Size(30, 30))
+
+                    images.push({ name: element.toString(), value: back })
                 }
 
                 numbers.push(num)
@@ -136,10 +174,9 @@ export const searchContours = (src: Mat, setImages: (mar: Mat[]) => void) => {
                 allRects.push(splice)
             }
         }
-        // alert(performance.now() - time + 'ms ' + allRects.length)
-        // alert(JSON.stringify(numbers, null, 4))ale
+        alert(performance.now() - time + 'ms ' + allRects.length)
+        // alert(JSON.stringify(numbers, null, 4))
 
-        alert('alert')
         setImages(images)
     })
 }

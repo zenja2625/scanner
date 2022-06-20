@@ -18,24 +18,37 @@ function App() {
     const width = 200
     const height = 200
 
-    const [images, setImages] = useState<Mat[]>([])
+    const [images, setImages] = useState<{ name: string; value: Mat }[]>([])
 
     useEffect(() => {
         const wrapper = document.getElementById('wrapper')
 
         if (images.length && wrapper) {
-
             wrapper.innerHTML = ''
 
             for (let i = 0; i < images.length; i++) {
-                const image = images[i];
+                const image = images[i]
 
                 const canvas = document.createElement('canvas')
                 canvas.height = 60
                 canvas.width = 60
-                cv.imshow(canvas, image)
-                wrapper.append(canvas)
+                cv.imshow(canvas, image.value)
 
+                const wrap = document.createElement('div')
+                wrap.style.position = 'relative'
+                // wrap.style.width = '30px'
+                // wrap.style.height = '30px'
+                const text = document.createElement('div')
+                text.innerHTML = image.name
+                text.style.position = 'absolute'
+                text.style.bottom = '0'
+                text.style.right = '0'
+                text.style.zIndex = '10000'
+                text.style.color = 'chartreuse'
+
+                wrap.append(canvas, text)
+
+                wrapper.append(wrap)
             }
 
             // alert(images.length)
@@ -78,12 +91,7 @@ function App() {
         context.drawImage(video, 0, 0)
 
         let src = cv.imread(canvas)
-        const rect = new cv.Rect(
-            canvas.width / 2 - 100,
-            canvas.height / 2 - 100,
-            width,
-            height
-        )
+        const rect = new cv.Rect(canvas.width / 2 - 100, canvas.height / 2 - 100, width, height)
         src = src.roi(rect)
 
         cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0)
@@ -167,7 +175,8 @@ function App() {
                         display: 'flex',
                         flexWrap: 'wrap',
                         width: '100vw',
-                        alignItems: 'flex-start'
+                        alignItems: 'flex-start',
+                        gap: '1px',
                     }}
                 ></div>
                 {/* <canvas
