@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Rect } from './types'
 import './App.css'
 
-import cv from 'opencv-ts'
+import cv, { Mat } from 'opencv-ts'
 import { Selector } from './Selector'
+import { searchContours } from './searchContours'
 
 function App() {
-    const [selectors, setSelectors] = useState<Array<Rect>>([])
+    const [selectors] = useState<Array<Rect>>([])
+    // const [selectors, _setSelectors] = useState<Array<Rect>>([])
 
     const [cvLoad, setCvLoad] = useState(false)
     const ref = useRef<HTMLVideoElement | null>(null)
@@ -15,6 +17,30 @@ function App() {
     const [margin, setMargin] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
     const width = 200
     const height = 200
+
+    const [images, setImages] = useState<Mat[]>([])
+
+    useEffect(() => {
+        const wrapper = document.getElementById('wrapper')
+
+        if (images.length && wrapper) {
+
+            wrapper.innerHTML = ''
+
+            for (let i = 0; i < images.length; i++) {
+                const image = images[i];
+
+                const canvas = document.createElement('canvas')
+                canvas.height = 60
+                canvas.width = 60
+                cv.imshow(canvas, image)
+                wrapper.append(canvas)
+
+            }
+
+            // alert(images.length)
+        }
+    }, [images])
 
     useEffect(() => {
         cv.onRuntimeInitialized = () => {
@@ -39,6 +65,31 @@ function App() {
             // alert(id)
         })
     }, [])
+
+    const onClick = () => {
+        const video = ref.current
+        const canvas = canvasRef.current
+        const context = canvas?.getContext('2d')
+
+        if (!video || !canvas || !context) return
+
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        context.drawImage(video, 0, 0)
+
+        let src = cv.imread(canvas)
+        const rect = new cv.Rect(
+            canvas.width / 2 - 100,
+            canvas.height / 2 - 100,
+            width,
+            height
+        )
+        src = src.roi(rect)
+
+        cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0)
+
+        searchContours(src, setImages)
+    }
 
     return (
         <div className='App'>
@@ -109,168 +160,14 @@ function App() {
                         ))}
                     </div>
                 </div>
-                <button
-                    onClick={() => {
-                        const wrapper = document.getElementById('wrapper')
-
-
-                        const isEqualHeight = (rect1: Rect, rect2: Rect, procent: number) => {
-                            if (rect1.height > rect2.height)
-                                return ((rect1.height - rect2.height) / rect2.height) * 100 >= 80
-                            else if (rect1.height < rect2.height)
-                                return ((rect2.height - rect1.height) / rect1.height) * 100 >= 80
-
-                            return true
-                        }
-
-                        if (canvasRef.current && ref.current && wrapper && canvasGrayRef.current) {
-                            wrapper.innerHTML = ''
-                            const canvas = canvasRef.current
-                            const canvasGray = canvasGrayRef.current
-                            const video = ref.current
-
-                            canvas.width = video.videoWidth
-                            canvas.height = video.videoHeight
-                            const context = canvas.getContext('2d')
-                            if (context) {
-                                context.drawImage(video, 0, 0)
-
-                                let src = cv.imread(canvas)
-
-                                const rect = new cv.Rect(
-                                    canvas.width / 2 - 100,
-                                    canvas.height / 2 - 100,
-                                    width,
-                                    height
-                                )
-                                src = src.roi(rect)
-
-                                cv.resize(src, src, new cv.Size(0, 0), 2, 2)
-
-                                cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0)
-
-                                cv.threshold(src, src, 120, 255, cv.THRESH_BINARY)
-
-                                let M = new cv.Mat.ones(2, 2, cv.CV_8U)
-                                let anchor = new cv.Point(-1, -1)
-
-                                cv.erode(
-                                    src,
-                                    src,
-                                    M,
-                                    anchor,
-                                    1,
-                                    cv.BORDER_CONSTANT,
-                                    cv.morphologyDefaultBorderValue()
-                                )
-
-                                cv.imshow(canvasGray, src)
-
-                                let contours = new cv.MatVector()
-                                let hierarchy = new cv.Mat()
-
-                                cv.findContours(
-                                    src,
-                                    contours,
-                                    hierarchy,
-                                    cv.RETR_TREE,
-                                    cv.CHAIN_APPROX_SIMPLE
-                                )
-
-                                const rects: Array<Rect> = []
-
-                                const isIn = (rect1: Rect, rect2: Rect) => {
-                                    return (
-                                        rect1.x >= rect2.x &&
-                                        rect1.y <= rect2.y &&
-                                        rect1.x + rect1.width <= rect2.x + rect2.width &&
-                                        rect1.y + rect1.height <= rect2.y + rect2.height
-                                    )
-                                }
-
-
-                                const indexes: number[] = []
-
-                                for (let i = 0; i < contours.size(); i++) {
-                                    if (hierarchy.intPtr(0, i)[3] === -1) continue
-
-                                    if (indexes.findIndex(item => item === hierarchy.intPtr(0, i)[3]) !== -1) continue
-                                    indexes.push(i)
-
-                                    const { x, y, width, height } = cv.boundingRect(contours.get(i))
-
-                                    // alert(JSON.stringify(cv.boundingRect(contours.get(i))))
-                                    const contourRect = { x, y, width, height }
-
-                                    let isAdd = true
-
-                                    for (let j = 0; j < rects.length; j++) {
-                                        const rect = rects[j]
-
-                                        if (rect.width >= width && rect.height >= height) {
-                                            if (isIn(contourRect, rect)) {
-                                                isAdd = false
-                                                break
-                                            }
-                                        }
-                                    }
-
-                                    rects.push({ x, y, width, height })
-
-                                    // hierarchy.intPtr(0, i)[3] === 0 &&
-                                    //     alert(hierarchy.intPtr(0, i)[3] === 0)
-                                    // alert(hierarchy.intPtr(0, i)[3]);
-                                }
-
-
-                                rects.sort((a, b) => {
-                                    const bottomA = a.y + a.height
-                                    const bottomB = b.y + b.height
-
-                                    return (
-                                        (bottomA >= b.y && a.y <= bottomB ? 0 : a.y - b.y) ||
-                                        a.x - b.x
-                                    )
-                                })
-
-                                const newRects: Rect[] = []
-
-                                for (let i = 0; i < rects.length; i++) {
-                                    const rect1 = rects[i];
-                                    
-
-                                }
-
-                                // rects.reduce()
-
-                                // rects.sort((a, b) => a.y - b.y || a.x - b.x)
-
-                                for (let i = 0; i < rects.length; i++) {
-                                    const { x, y, width, height } = rects[i]
-
-                                    const rect = new cv.Rect(x, y, width, height)
-                                    const lupa = src.roi(rect)
-
-                                    const cnv = document.createElement('canvas')
-                                    cnv.style.height = `${height}px`
-                                    cv.imshow(cnv, lupa)
-
-                                    wrapper.append(cnv)
-                                }
-
-                                setSelectors(rects)
-                            }
-                        }
-                    }}
-                >
-                    Screen
-                </button>
+                <button onClick={onClick}>Screen</button>
                 <div
                     id='wrapper'
                     style={{
                         display: 'flex',
                         flexWrap: 'wrap',
                         width: '100vw',
+                        alignItems: 'flex-start'
                     }}
                 ></div>
                 {/* <canvas
