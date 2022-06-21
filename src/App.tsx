@@ -118,6 +118,8 @@ function App() {
                         position: 'absolute',
                         top: 0,
                         right: 0,
+                        whiteSpace: 'pre-line',
+                        textAlign: 'end'
                     }}
                 >
                     'log'
