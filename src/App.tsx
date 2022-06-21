@@ -6,6 +6,10 @@ import cv, { Mat } from 'opencv-ts'
 import { Selector } from './Selector'
 import { useModel } from './useModel'
 
+// const isLog = false
+
+
+
 function App() {
     const [selectors] = useState<Array<Rect>>([])
     // const [selectors, _setSelectors] = useState<Array<Rect>>([])
@@ -98,12 +102,26 @@ function App() {
 
         cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0)
 
-        searchContours(src, setImages)
+        try {
+            searchContours(src, setImages)
+        } catch (error) {
+            alert(error)
+        }
     }
 
     return (
         <div className='App'>
             <header className='App-header'>
+                <div
+                    id='log'
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                    }}
+                >
+                    'log'
+                </div>
                 <div
                     style={{
                         position: 'absolute',

@@ -2,6 +2,7 @@ import * as tf from '@tensorflow/tfjs'
 import { useCallback, useEffect, useState } from 'react'
 import cv, { Mat } from 'opencv-ts'
 import { Rect } from './types'
+import { log } from './log'
 
 export const useModel = () => {
     const [model, setModel] = useState<tf.LayersModel | null>(null)
@@ -22,7 +23,7 @@ export const useModel = () => {
     }, [])
 
     const searchContours = useCallback(
-        (src: Mat, setImages: (mar: { name: string; value: Mat }[]) => void) => {
+        async (src: Mat, setImages: (mar: { name: string; value: Mat }[]) => void) => {
             if (!model) return
 
             const images: { name: string; value: Mat }[] = []
@@ -37,6 +38,9 @@ export const useModel = () => {
             const numbers: number[][] = []
 
             // const time = performance.now()
+
+            await log('Start')
+            // await log('Start')
 
             for (let thresh = 250; thresh >= 0; thresh -= 10) {
                 cv.threshold(src, threshold, thresh, 255, cv.THRESH_BINARY)
@@ -115,7 +119,7 @@ export const useModel = () => {
                 }
                 const splice = rects.splice(startIndex, count)
                 // alert(asds)
-
+                tf.engine().startScope()
                 if (splice.length) {
                     const tensors: tf.Tensor<tf.Rank>[] = []
 
@@ -164,7 +168,7 @@ export const useModel = () => {
 
                     const pr_tensor = model.predictOnBatch(batch)
                     const argMax = (pr_tensor as tf.Tensor<tf.Rank>).argMax(1).dataSync()
-
+                    tf.engine().endScope()
                     const num: number[] = []
 
                     for (let i = 0; i < argMax.length; i++) {
@@ -196,8 +200,8 @@ export const useModel = () => {
                     allRects.push(splice)
                 }
             }
-            alert(performance.now() - time + 'ms ' + allRects.length)
-            // alert(JSON.stringify(numbers, null, 4))
+
+            await log(performance.now() - time + 'ms ')
 
             setImages(images)
         },
