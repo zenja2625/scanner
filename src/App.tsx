@@ -4,7 +4,7 @@ import './App.css'
 
 import cv, { Mat } from 'opencv-ts'
 import { Selector } from './Selector'
-import { searchContours } from './searchContours'
+import { useModel } from './useModel'
 
 function App() {
     const [selectors] = useState<Array<Rect>>([])
@@ -19,6 +19,8 @@ function App() {
     const height = 200
 
     const [images, setImages] = useState<{ name: string; value: Mat }[]>([])
+
+    const { isLoad, searchContours } = useModel()
 
     useEffect(() => {
         const wrapper = document.getElementById('wrapper')
@@ -107,7 +109,7 @@ function App() {
                         position: 'absolute',
                         width: '10px',
                         height: '10px',
-                        backgroundColor: !cvLoad ? 'red' : 'greenyellow',
+                        backgroundColor: !cvLoad || !isLoad ? 'red' : 'greenyellow',
                         left: 10,
                         bottom: 10,
                         zIndex: 1000,
