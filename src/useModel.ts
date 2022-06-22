@@ -9,7 +9,7 @@ export const useModel = () => {
 
     useEffect(() => {
         const loadModel = async () => {
-            const model = await tf.loadLayersModel('https://192.168.0.104:3000/model.json')
+            const model = await tf.loadLayersModel('https://192.168.8.136:3000/model.json')
 
             const result = model.predict(tf.zeros([1, 30, 30, 1])) as tf.Tensor<tf.Rank>
 
@@ -35,19 +35,15 @@ export const useModel = () => {
             // alert('Start')
             const threshold = new cv.Mat()
 
-            const allRects: Rect[][] = []
-
-            const numbers: number[][] = []
-
             // const time = performance.now()
 
             await log('Start')
 
             let allRectsCount = 0
 
-            const imagesData: number[][][][] = []
+            const numbe: number[][] = []
 
-            for (let thresh = 250; thresh >= 0; thresh -= 10) {
+            for (let thresh = 170; thresh >= 0; thresh -= 10) {
                 cv.threshold(src, threshold, thresh, 255, cv.THRESH_BINARY)
 
                 let contours = new cv.MatVector()
@@ -84,15 +80,81 @@ export const useModel = () => {
                     return (bottomA >= b.y && a.y <= bottomB ? 0 : a.y - b.y) || a.x - b.x
                 })
 
-                allRectsCount += rects.length
+                const sortRects: Rect[] = []
 
-                for (let i = 0; i < rects.length; i++) {
-                    const { x, y, height, width } = rects[i]
+                let start = 0
+                let count = 1
+
+                for (let i = 1; i < rects.length; i++) {
+                    const y = rects[i].y
+                    const rect = rects[i - 1]
+
+                    if (rect.y + rect.height > y) {
+                        count++
+                    } else {
+                        if (count >= 4 && count <= 6) {
+                            sortRects.push(...rects.slice(start, start + count))
+                        }
+                        start = i
+                        count = 1
+                    }
+                }
+
+                allRectsCount += sortRects.length
+
+                for (let i = 0; i < sortRects.length; i++) {
+                    const { x, y, height, width } = sortRects[i]
                     const rect = new cv.Rect(x, y, width, height)
                     const number = threshold.roi(rect)
                     const asd: Mat = new cv.Mat()
                     number.copyTo(asd)
-                    images.push({ name: '', value: asd })
+
+                    const scale = new cv.Mat(30, 30, cv.CV_8UC1, new cv.Scalar(0))
+
+                    cv.resize(
+                        number,
+                        scale,
+                        new cv.Size(
+                            height > width ? width * (30 / height) : 30,
+                            height < width ? height * (30 / width) : 30
+                        ),
+                        1,
+                        1,
+                        cv.INTER_NEAREST
+                    )
+
+                    cv.copyMakeBorder(
+                        scale,
+                        scale,
+                        0,
+                        scale.rows < 30 ? 30 - scale.rows : 0,
+                        scale.cols < 30 ? 30 - scale.cols : 0,
+                        0,
+                        cv.BORDER_CONSTANT,
+                        new cv.Scalar(255)
+                    )
+
+                    // images.push({ name: '', value: asd })
+                    images.push({ name: '', value: scale })
+
+                    numbe.push(Array.from(scale.data))
+                }
+            }
+
+            if (numbe.length) {
+                await log('Create Tensor')
+
+                const tensor = tf.tensor(numbe, [allRectsCount, 30, 30, 1])
+                // const layerNormalizationLayer = tf.layers.layerNormalization()
+                // layerNormalizationLayer.apply(tensor)
+
+                await log('Start Predict')
+
+                const pr_tensor = model.predictOnBatch(tensor)
+                const argMax = (pr_tensor as tf.Tensor<tf.Rank>).argMax(1).dataSync()
+
+                for (let i = 0; i < allRectsCount; i++) {
+                    images[i].name = argMax[i].toString()
                 }
             }
 
