@@ -12,12 +12,30 @@
 .screen-button {
     position: absolute;
     bottom: 4vh;
-    width: 75px;
-    height: 75px;
+    width: 20vw;
+    height: 20vw;
     background-color: greenyellow;
     border-radius: 50%;
     border: 3px solid black;
 }
 .screen-button:active {
     background-color: red;
+}
+
+.card {
+    color: black;
+    border: 1px solid black;
+    padding: 5px;
+    width: 30vw;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.card > div:first-child {
+    font-size: 1.1em;
+}
+.card > div:last-child {
+    font-size: 0.8em;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }

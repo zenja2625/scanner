@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Rect } from './types'
+import { Rect, Sponsor } from './types'
 import './App.css'
 
 import cv, { Mat } from 'opencv-ts'
 import { Selector } from './Selector'
 import { useModel } from './useModel'
+import { Card } from './Card'
 
 // const isLog = false
 
@@ -19,6 +20,9 @@ function App() {
     const [margin, setMargin] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
     const width = 200
     const height = 200
+
+    const [matchSponsors, setMatchSponsors] = useState<Array<Sponsor>>([])
+    const [sponsors, setSponsors] = useState<Array<Sponsor>>([])
 
     const [images, setImages] = useState<{ name: string; value: Mat }[]>([])
 
@@ -107,7 +111,7 @@ function App() {
         cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0)
 
         try {
-            searchContours(src, setImages)
+            searchContours(src, setImages, setMatchSponsors)
         } catch (error) {
             alert(error)
         }
@@ -196,7 +200,8 @@ function App() {
                 </div>
                 {/* <button onClick={onClick}>Screen</button> */}
                 <div onClick={onClick} className='screen-button'></div>
-                <div
+
+                {/* <div
                     id='wrapper'
                     style={{
                         display: 'flex',
@@ -205,7 +210,51 @@ function App() {
                         alignItems: 'flex-start',
                         gap: '1px',
                     }}
-                ></div>
+                ></div> */}
+
+                <div
+                    style={{
+                        position: 'absolute',
+                        bottom: '30vh',
+                        right: 0,
+                    }}
+                >
+                    {matchSponsors.map(({ code, name }) => {
+                        const isSelected =
+                            sponsors.findIndex(sponsor => sponsor.code === code) !== -1
+
+                        return (
+                            <Card
+                                isSelected={isSelected}
+                                setSponsor={sponsor => {
+                                    if (!isSelected) setSponsors(prev => [...prev, sponsor])
+                                }}
+                                key={code}
+                                code={code}
+                                name={name}
+                            />
+                        )
+                    })}
+                </div>
+
+                <div
+                    style={{
+                        position: 'absolute',
+                        bottom: '30vh',
+                        left: 0,
+                    }}
+                >
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center'
+                    }}>{sponsors.length}</div>
+                    {sponsors
+                        .filter((_, index) => index > sponsors.length - 1 - 3)
+                        .map(({ code, name }) => (
+                            <Card key={code} code={code} name={name} />
+                        ))}
+                </div>
+
                 {/* <canvas
                     style={{
                         position: 'absolute',

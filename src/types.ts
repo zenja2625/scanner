@@ -4,3 +4,8 @@ export type Rect = {
     height: number
     width: number
 }
+
+export type Sponsor = {
+    code: string
+    name: string
+}

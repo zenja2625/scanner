@@ -1,23 +1,24 @@
 import * as tf from '@tensorflow/tfjs'
 import { useCallback, useEffect, useState } from 'react'
 import cv, { Mat } from 'opencv-ts'
-import { Rect } from './types'
+import { Rect, Sponsor } from './types'
 import { log } from './log'
 import data from './data.json'
 import { matchesCount } from './matchesCount'
 
 export const useModel = () => {
     const [model, setModel] = useState<tf.LayersModel | null>(null)
-    const [ids, setIds] = useState<number[][]>([])
+    const [ids, setIds] = useState<{ number: number[]; name: string }[]>([])
 
     useEffect(() => {
         const loadModel = async () => {
             // const time = performance.now()
-            const ids = data.Data.map(d =>
-                d.ConsultantNumber.toString()
+            const ids = data.Data.map(d => ({
+                number: d.ConsultantNumber.toString()
                     .split('')
-                    .map(n => parseInt(n))
-            )
+                    .map(n => parseInt(n)),
+                name: d.ConsultantName.split(' ').reverse()[0]
+            }))
             setIds(ids)
             // log((performance.now() - time).toString())
             // setIds(data.Data.map(d => d.ConsultantNumber))
@@ -51,7 +52,11 @@ export const useModel = () => {
     }, [])
 
     const searchContours = useCallback(
-        async (src: Mat, setImages: (mar: { name: string; value: Mat }[]) => void) => {
+        async (
+            src: Mat,
+            setImages: (mar: { name: string; value: Mat }[]) => void,
+            setMatchSponsors: (sponsor: Array<Sponsor>) => void
+        ) => {
             if (!model) return
 
             let logs = ''
@@ -183,36 +188,38 @@ export const useModel = () => {
                 const pr_tensor = model.predictOnBatch(tensor)
                 const argMax = Array.from((pr_tensor as tf.Tensor<tf.Rank>).argMax(1).dataSync())
 
-                const matches: { number: number[]; match: number }[] = []
+                const matches: { number: number[]; match: number, name: string }[] = []
 
                 for (let i = 0; i < allRectsCount; i++) {
                     images[i].name = argMax[i].toString()
                 }
 
                 for (let j = 0; j < ids.length; j++) {
-                    const id = ids[j]
+                    const id = ids[j].number
 
                     const m = matchesCount(id, argMax)
 
-                    matches.push({ number: id, match: m })
+                    matches.push({ number: id, match: m,name: ids[j].name })
                 }
 
                 matches.sort((a, b) => b.match - a.match)
                 // alert(JSON.stringify(matches, null, 4))
 
+                const sponsors: Array<Sponsor> = []
                 logs += '\n----------------'
-                for (let i = 0; i < 5 && i < matches.length; i++) {
-                    const element = matches[i];
-                    if (element.match <= 3) break
-                    logs += '\n' + element.number.join("")
+                for (let i = 0; i < 3 && i < matches.length; i++) {
+                    const element = matches[i]
+                    if (element.match < 3) break
+                    logs += '\n' + element.number.join('')
+
+                    sponsors.push({ code: element.number.join(''), name: element.name })
                 }
 
+                setMatchSponsors(sponsors.reverse())
                 logs += '\n----------------'
-
             }
 
             logs += '\n' + allRectsCount
-
 
             await log(performance.now() - time + 'ms ' + logs)
 
