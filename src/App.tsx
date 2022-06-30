@@ -76,7 +76,7 @@ function App() {
                     id = device.deviceId
                 }
             })
-            navigator.mediaDevices.getUserMedia({ video: { deviceId: id } }).then(stream => {
+            navigator.mediaDevices.getUserMedia({ video: { deviceId: id, width: 1280, height: 720 } }).then(stream => {
                 const video = document.querySelector('video')
                 // включаем поток в магический URL
                 if (video !== null) video.srcObject = stream
