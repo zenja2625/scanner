@@ -190,7 +190,8 @@ function App() {
                         ))}
                     </div>
                 </div>
-                <button onClick={onClick}>Screen</button>
+                {/* <button onClick={onClick}>Screen</button> */}
+                <div onClick={onClick} className='screen-button'></div>
                 <div
                     id='wrapper'
                     style={{
