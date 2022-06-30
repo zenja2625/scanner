@@ -8,8 +8,6 @@ import { useModel } from './useModel'
 
 // const isLog = false
 
-
-
 function App() {
     const [selectors] = useState<Array<Rect>>([])
     // const [selectors, _setSelectors] = useState<Array<Rect>>([])
@@ -27,38 +25,42 @@ function App() {
     const { isLoad, searchContours } = useModel()
 
     useEffect(() => {
-        const wrapper = document.getElementById('wrapper')
+        const foo = async () => {
+            const wrapper = document.getElementById('wrapper')
 
-        if (images.length && wrapper) {
-            wrapper.innerHTML = ''
+            if (images.length && wrapper) {
+                wrapper.innerHTML = ''
 
-            for (let i = 0; i < images.length; i++) {
-                const image = images[i]
+                for (let i = 0; i < images.length; i++) {
+                    const image = images[i]
 
-                const canvas = document.createElement('canvas')
-                canvas.height = 60
-                canvas.width = 60
-                cv.imshow(canvas, image.value)
+                    const canvas = document.createElement('canvas')
+                    canvas.height = 60
+                    canvas.width = 60
+                    cv.imshow(canvas, image.value)
 
-                const wrap = document.createElement('div')
-                wrap.style.position = 'relative'
-                // wrap.style.width = '30px'
-                // wrap.style.height = '30px'
-                const text = document.createElement('div')
-                text.innerHTML = image.name
-                text.style.position = 'absolute'
-                text.style.bottom = '0'
-                text.style.right = '0'
-                text.style.zIndex = '10000'
-                text.style.color = 'chartreuse'
+                    const wrap = document.createElement('div')
+                    wrap.style.position = 'relative'
+                    // wrap.style.width = '30px'
+                    // wrap.style.height = '30px'
+                    const text = document.createElement('div')
+                    text.innerHTML = image.name
+                    text.style.position = 'absolute'
+                    text.style.bottom = '0'
+                    text.style.right = '0'
+                    text.style.zIndex = '10000'
+                    text.style.color = 'chartreuse'
 
-                wrap.append(canvas, text)
+                    wrap.append(canvas, text)
 
-                wrapper.append(wrap)
+                    wrapper.append(wrap)
+                }
+
+                // alert(images.length)
             }
-
-            // alert(images.length)
         }
+
+        foo()
     }, [images])
 
     useEffect(() => {
@@ -76,11 +78,13 @@ function App() {
                     id = device.deviceId
                 }
             })
-            navigator.mediaDevices.getUserMedia({ video: { deviceId: id, width: 1280, height: 720 } }).then(stream => {
-                const video = document.querySelector('video')
-                // включаем поток в магический URL
-                if (video !== null) video.srcObject = stream
-            })
+            navigator.mediaDevices
+                .getUserMedia({ video: { deviceId: id, width: 1280, height: 720 } })
+                .then(stream => {
+                    const video = document.querySelector('video')
+                    // включаем поток в магический URL
+                    if (video !== null) video.srcObject = stream
+                })
             // alert(id)
         })
     }, [])
@@ -119,7 +123,7 @@ function App() {
                         top: 0,
                         right: 0,
                         whiteSpace: 'pre-line',
-                        textAlign: 'end'
+                        textAlign: 'end',
                     }}
                 >
                     'log'

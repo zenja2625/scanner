@@ -151,13 +151,15 @@ export const useModel = () => {
                         cv.INTER_NEAREST
                     )
 
+                    const widthOffset = scale.cols < 30 ? 30 - scale.cols : 0
+
                     cv.copyMakeBorder(
                         scale,
                         scale,
                         0,
                         scale.rows < 30 ? 30 - scale.rows : 0,
-                        scale.cols < 30 ? 30 - scale.cols : 0,
-                        0,
+                        Math.floor(widthOffset / 2),
+                        widthOffset - Math.floor(widthOffset / 2),
                         cv.BORDER_CONSTANT,
                         new cv.Scalar(255)
                     )
