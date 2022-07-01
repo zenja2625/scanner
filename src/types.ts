@@ -6,6 +6,7 @@ export type Rect = {
 }
 
 export type Sponsor = {
-    code: string
+    number: string
     name: string
+    phone: string | null
 }

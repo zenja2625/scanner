@@ -39,3 +39,58 @@
     text-overflow: ellipsis;
     overflow: hidden;
 }
+
+.card-list-wrapper {
+    position: absolute;
+    z-index: 1000;
+
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.card-list-background {
+    position: absolute;
+    background-color: #282c34;
+    opacity: 0.7;
+    width: 100%;
+    height: 100%;
+}
+
+.card-list {
+    height: 60%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.a-button {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+
+    text-decoration: none;
+    color: initial;
+}
+
+
+
+.card-list-button {
+    font-size: 16px;
+    padding: 5px;
+    width: 100%;
+}
+
+
+
+.card-list-element {
+    display: flex;
+}
+
+.card-list-element > button {
+    width: 50px;
+}

@@ -3,42 +3,21 @@ import { useCallback, useEffect, useState } from 'react'
 import cv, { Mat } from 'opencv-ts'
 import { Rect, Sponsor } from './types'
 import { log } from './log'
-import data from './data.json'
 import { matchesCount } from './matchesCount'
 
 export const useModel = () => {
     const [model, setModel] = useState<tf.LayersModel | null>(null)
-    const [ids, setIds] = useState<{ number: number[]; name: string }[]>([])
+    const [ids, setIds] = useState<{ number: number[]; name: string; phone: string | null }[]>([])
 
     useEffect(() => {
         const loadModel = async () => {
-            // const time = performance.now()
-            const ids = data.Data.map(d => ({
-                number: d.ConsultantNumber.toString()
-                    .split('')
-                    .map(n => parseInt(n)),
-                name: d.ConsultantName.split(' ').reverse()[0]
-            }))
-            setIds(ids)
-            // log((performance.now() - time).toString())
-            // setIds(data.Data.map(d => d.ConsultantNumber))
+            const data = window.localStorage.getItem('data')
 
-            // const searchNumbers = [1, 7, 4, 6, 5, 2, 9]
-            // const searchId: number[] = []
+            if (data) {
+                setIds(JSON.parse(data))
+            }
 
-            // for (let i = 0; i < ids.length; i++) {
-            //     const idArr = ids[i];
-
-            //     let maxMatches = 0
-
-            //     for (let j = 0; j < searchNumbers.length; j++) {
-            //         const searchNumber = searchNumbers[j];
-
-            //     }
-            // }
-            // console.log(ids[0])
-
-            const model = await tf.loadLayersModel('https://192.168.0.104:3000/model.json')
+            const model = await tf.loadLayersModel('/model.json')
 
             const result = model.predict(tf.zeros([1, 30, 30, 1])) as tf.Tensor<tf.Rank>
 
@@ -188,7 +167,7 @@ export const useModel = () => {
                 const pr_tensor = model.predictOnBatch(tensor)
                 const argMax = Array.from((pr_tensor as tf.Tensor<tf.Rank>).argMax(1).dataSync())
 
-                const matches: { number: number[]; match: number, name: string }[] = []
+                const matches: { number: number[]; match: number; name: string, phone: string | null }[] = []
 
                 for (let i = 0; i < allRectsCount; i++) {
                     images[i].name = argMax[i].toString()
@@ -199,7 +178,7 @@ export const useModel = () => {
 
                     const m = matchesCount(id, argMax)
 
-                    matches.push({ number: id, match: m,name: ids[j].name })
+                    matches.push({ number: id, match: m, name: ids[j].name, phone: ids[j].phone })
                 }
 
                 matches.sort((a, b) => b.match - a.match)
@@ -212,7 +191,7 @@ export const useModel = () => {
                     if (element.match < 3) break
                     logs += '\n' + element.number.join('')
 
-                    sponsors.push({ code: element.number.join(''), name: element.name })
+                    sponsors.push({ number: element.number.join(''), name: element.name, phone: element.phone })
                 }
 
                 setMatchSponsors(sponsors.reverse())
@@ -225,11 +204,13 @@ export const useModel = () => {
 
             setImages(images)
         },
-        [model]
+        [model, ids]
     )
 
     return {
         isLoad: !!model,
+        isData: !!ids.length,
+        setIds,
         searchContours,
     }
 }

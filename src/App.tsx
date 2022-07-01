@@ -6,6 +6,7 @@ import cv, { Mat } from 'opencv-ts'
 import { Selector } from './Selector'
 import { useModel } from './useModel'
 import { Card } from './Card'
+import { SeletedSponsorList } from './SeletedSponsorList'
 
 // const isLog = false
 
@@ -21,12 +22,13 @@ function App() {
     const width = 200
     const height = 200
 
+    const [listOpen, setListOpen] = useState(false)
     const [matchSponsors, setMatchSponsors] = useState<Array<Sponsor>>([])
     const [sponsors, setSponsors] = useState<Array<Sponsor>>([])
 
     const [images, setImages] = useState<{ name: string; value: Mat }[]>([])
 
-    const { isLoad, searchContours } = useModel()
+    const { isLoad, isData, searchContours, setIds } = useModel()
 
     useEffect(() => {
         const foo = async () => {
@@ -115,6 +117,39 @@ function App() {
         } catch (error) {
             alert(error)
         }
+    }
+
+    if (!isData) {
+        return (
+            <div className='App'>
+                <header className='App-header' style={{ justifyContent: 'center' }}>
+                    <input
+                        type='file'
+                        onChange={e => {
+                            const fileReader = new FileReader()
+                            if (e.target.files) {
+                                fileReader.readAsText(e.target.files[0], 'UTF-8')
+                                fileReader.onload = e => {
+                                    if (e.target?.result) {
+                                        const data = (
+                                            JSON.parse(e.target.result.toString()) as any[]
+                                        ).map(item => ({
+                                            ...item,
+                                            number: (item.number as string)
+                                                .split('')
+                                                .map(n => parseInt(n)),
+                                        }))
+
+                                        setIds(data)
+                                        window.localStorage.setItem('data', JSON.stringify(data))
+                                    }
+                                }
+                            }
+                        }}
+                    />
+                </header>
+            </div>
+        )
     }
 
     return (
@@ -219,9 +254,9 @@ function App() {
                         right: 0,
                     }}
                 >
-                    {matchSponsors.map(({ code, name }) => {
+                    {matchSponsors.map(({ number: code, name, phone }) => {
                         const isSelected =
-                            sponsors.findIndex(sponsor => sponsor.code === code) !== -1
+                            sponsors.findIndex(sponsor => sponsor.number === code) !== -1
 
                         return (
                             <Card
@@ -230,8 +265,9 @@ function App() {
                                     if (!isSelected) setSponsors(prev => [...prev, sponsor])
                                 }}
                                 key={code}
-                                code={code}
+                                number={code}
                                 name={name}
+                                phone={phone}
                             />
                         )
                     })}
@@ -244,14 +280,27 @@ function App() {
                         left: 0,
                     }}
                 >
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'center'
-                    }}>{sponsors.length}</div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                        }}
+                    >
+                        <div>{sponsors.length}</div>
+                        <button
+                            onClick={() => setListOpen(true)}
+                            style={{
+                                width: '40px',
+                                height: '40px',
+                            }}
+                        >
+                            ...
+                        </button>
+                    </div>
                     {sponsors
                         .filter((_, index) => index > sponsors.length - 1 - 3)
-                        .map(({ code, name }) => (
-                            <Card key={code} code={code} name={name} />
+                        .map(({ number: code, name, phone }) => (
+                            <Card key={code} number={code} name={name} phone={phone} />
                         ))}
                 </div>
 
@@ -269,6 +318,18 @@ function App() {
                     }}
                     ref={canvasRef}
                 ></canvas>
+                {listOpen && (
+                    <SeletedSponsorList
+                        clear={() => setSponsors([])}
+                        removeSponsor={sponsorCode =>
+                            setSponsors(prev =>
+                                prev.filter(sponsor => sponsor.number !== sponsorCode)
+                            )
+                        }
+                        sponsors={sponsors}
+                        close={() => setListOpen(false)}
+                    />
+                )}
             </header>
         </div>
     )
