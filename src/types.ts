@@ -10,3 +10,8 @@ export type Sponsor = {
     name: string
     phone: string | null
 }
+
+export type Coors = {
+    left: number
+    top: number
+}

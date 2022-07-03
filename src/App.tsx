@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { ElementRef, useEffect, useRef, useState } from 'react'
 import { Rect, Sponsor } from './types'
 import './App.css'
 
@@ -7,8 +7,11 @@ import { Selector } from './Selector'
 import { useModel } from './useModel'
 import { Card } from './Card'
 import { SeletedSponsorList } from './SeletedSponsorList'
+import { Camera } from './Camera'
 
 // const isLog = false
+
+type CameraRef = ElementRef<typeof Camera>
 
 function App() {
     const [selectors] = useState<Array<Rect>>([])
@@ -29,6 +32,9 @@ function App() {
     const [images, setImages] = useState<{ name: string; value: Mat }[]>([])
 
     const { isLoad, isData, searchContours, setIds } = useModel()
+
+    const cameraRef = useRef<CameraRef>(null)
+
 
     useEffect(() => {
         const foo = async () => {
@@ -151,6 +157,24 @@ function App() {
             </div>
         )
     }
+
+
+    return (
+        <>
+            <Camera ref={cameraRef} width={200} height={200} />
+            <button
+                onClick={() => {
+                    if (!cameraRef.current) return
+
+                    // const src = cameraRef.current.getScreen()
+
+            
+                }}
+            >
+                Click
+            </button>
+        </>
+    )
 
     return (
         <div className='App'>
