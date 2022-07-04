@@ -12,9 +12,9 @@ export const SeletedSponsorList: FC<{
         'Привет📦 твой заказ Орифлейм пришёл.  🕒 Мы работаем: Понедельник, Среда и Пятница с 15:00 до 17:30. До встречи 💄 '
 
     return (
-        <div className='card-list-wrapper'>
-            <div className='card-list-background'></div>
-            <div className='card-list'>
+        <div className='popup'>
+            <div className='popup-background'></div>
+            <div className='popup-card-wrapper'>
                 <a
                     href={`sms:${sponsors.map(s => s.phone).join(';')}?body=${message}`}
                     // href={`sms:+37126251813;+37126105872?body=hello%20there`}
@@ -24,22 +24,24 @@ export const SeletedSponsorList: FC<{
                         close()
                     }}
                 >
-                    <button className='card-list-button'>Отправить</button>
+                    <div className='list-button'>Отправить</div>
                 </a>
 
-                <div style={{ overflowY: 'auto' }}>
+                <div className='popup-card-list'>
                     {sponsors
                         .slice()
                         .reverse()
                         .map(({ number: code, name, phone }) => (
                             <div key={code} className='card-list-element'>
                                 <Card number={code} name={name} phone={phone} />
-                                <button onClick={() => removeSponsor(code)}>X</button>
+                                <div className='list-button delete-button' onClick={() => removeSponsor(code)}>
+                                    ❌
+                                </div>
                             </div>
                         ))}
                 </div>
 
-                <button className='card-list-button' onClick={close}>
+                <button className='list-button' onClick={close}>
                     Закрыть
                 </button>
             </div>

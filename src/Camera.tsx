@@ -10,7 +10,7 @@ import {
 import { Coors } from './types'
 
 type Size = { width: number; height: number }
-type CameraRef = { getScreen: () => Mat }
+type CameraRef = { getScreen: () => Mat | null }
 
 const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = ({ height, width }, ref) => {
     const [offset, setOffset] = useState<Coors>({ left: 0, top: 0 })
@@ -18,13 +18,8 @@ const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = ({ height, width }, 
 
     useEffect(() => {
         const startStream = async () => {
-            const devices = await navigator.mediaDevices.enumerateDevices()
-            const videoDevices = devices.filter(devise => devise.kind === 'videoinput')
-            const deviceId = videoDevices[videoDevices.length - 1]?.deviceId || null
-
-            if (!deviceId) return
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { deviceId, width: 1280, height: 720 },
+                video: { width: 1280, height: 720, facingMode: { exact: 'environment' } },
             })
             if (videoRef.current !== null) videoRef.current.srcObject = stream
         }
@@ -36,7 +31,7 @@ const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = ({ height, width }, 
         getScreen: () => {
             const video = videoRef.current
 
-            if (!video) return new cv.Mat()
+            if (!video) return null
 
             let src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4)
             video.height = video.videoHeight

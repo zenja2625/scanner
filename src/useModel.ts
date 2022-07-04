@@ -167,7 +167,12 @@ export const useModel = () => {
                 const pr_tensor = model.predictOnBatch(tensor)
                 const argMax = Array.from((pr_tensor as tf.Tensor<tf.Rank>).argMax(1).dataSync())
 
-                const matches: { number: number[]; match: number; name: string, phone: string | null }[] = []
+                const matches: {
+                    number: number[]
+                    match: number
+                    name: string
+                    phone: string | null
+                }[] = []
 
                 for (let i = 0; i < allRectsCount; i++) {
                     images[i].name = argMax[i].toString()
@@ -191,7 +196,11 @@ export const useModel = () => {
                     if (element.match < 3) break
                     logs += '\n' + element.number.join('')
 
-                    sponsors.push({ number: element.number.join(''), name: element.name, phone: element.phone })
+                    sponsors.push({
+                        number: element.number.join(''),
+                        name: element.name.split(' ').pop() || element.name,
+                        phone: element.phone,
+                    })
                 }
 
                 setMatchSponsors(sponsors.reverse())
