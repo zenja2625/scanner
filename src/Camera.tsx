@@ -18,8 +18,13 @@ const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = ({ height, width }, 
 
     useEffect(() => {
         const startStream = async () => {
+            const devices = await navigator.mediaDevices.enumerateDevices()
+            const videoDevices = devices.filter(devise => devise.kind === 'videoinput')
+            const deviceId = videoDevices[videoDevices.length - 1]?.deviceId || null
+
+            if (!deviceId) return
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { width: 1280, height: 720, facingMode: { exact: 'environment' } },
+                video: { deviceId, width: 1280, height: 720 },
             })
             if (videoRef.current !== null) videoRef.current.srcObject = stream
         }

@@ -17,7 +17,7 @@ export const useModel = () => {
                 setIds(JSON.parse(data))
             }
 
-            const model = await tf.loadLayersModel('/model.json')
+            const model = await tf.loadLayersModel('/scanner/model.json')
 
             const result = model.predict(tf.zeros([1, 30, 30, 1])) as tf.Tensor<tf.Rank>
 
