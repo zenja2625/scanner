@@ -12,7 +12,7 @@ export const searchContours = (
     const images: { name: string; value: Mat }[] = []
 
 
-    tf.loadLayersModel('https://192.168.0.104:3000/model.json').then(model => {
+    tf.loadLayersModel('https://192.168.0.106:3000/model.json').then(model => {
         const time = performance.now()
 
         // alert('Start')

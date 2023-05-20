@@ -17,7 +17,10 @@ export const useModel = () => {
                 setIds(JSON.parse(data))
             }
 
-            const model = await tf.loadLayersModel('/scanner/model.json')
+            
+            const model = await tf.loadLayersModel('/model.json')
+            // alert(tf.getBackend())
+
 
             const result = model.predict(tf.zeros([1, 30, 30, 1])) as tf.Tensor<tf.Rank>
 
@@ -42,7 +45,7 @@ export const useModel = () => {
 
             const images: { name: string; value: Mat }[] = []
 
-            const time = performance.now()
+            
 
             // alert('Start')
             const threshold = new cv.Mat()
@@ -156,17 +159,17 @@ export const useModel = () => {
             }
 
             if (numbe.length) {
-                await log('Create Tensor')
+                // await log('Create Tensor')
 
                 const tensor = tf.tensor(numbe, [allRectsCount, 30, 30, 1])
                 // const layerNormalizationLayer = tf.layers.layerNormalization()
                 // layerNormalizationLayer.apply(tensor)
 
-                await log('Start Predict')
-
+                // await log('Start Predict')
+                const time = performance.now()
                 const pr_tensor = model.predictOnBatch(tensor)
                 const argMax = Array.from((pr_tensor as tf.Tensor<tf.Rank>).argMax(1).dataSync())
-
+                await log(performance.now() - time + 'ms ' + logs)
                 const matches: {
                     number: number[]
                     match: number
@@ -190,7 +193,7 @@ export const useModel = () => {
                 // alert(JSON.stringify(matches, null, 4))
 
                 const sponsors: Array<Sponsor> = []
-                logs += '\n----------------'
+                // logs += '\n----------------'
                 for (let i = 0; i < 3 && i < matches.length; i++) {
                     const element = matches[i]
                     if (element.match < 3) break
@@ -204,12 +207,12 @@ export const useModel = () => {
                 }
 
                 setMatchSponsors(sponsors.reverse())
-                logs += '\n----------------'
+                // logs += '\n----------------'
             }
 
-            logs += '\n' + allRectsCount
+            // logs += '\n' + allRectsCount
 
-            await log(performance.now() - time + 'ms ' + logs)
+            
 
             setImages(images)
         },

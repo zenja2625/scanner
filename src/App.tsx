@@ -7,8 +7,7 @@ import { useModel } from './useModel'
 import { Card } from './Card'
 import { SeletedSponsorList } from './SeletedSponsorList'
 import { Camera } from './Camera'
-
-// const isLog = false
+import { isDebug } from './index'
 
 type CameraRef = ElementRef<typeof Camera>
 
@@ -31,24 +30,24 @@ function App() {
         }
 
         // alert('useEffect')
-        navigator.mediaDevices.enumerateDevices().then(function (devices) {
-            let id = ''
+        // navigator.mediaDevices.enumerateDevices().then(function (devices) {
+        //     let id = ''
 
-            devices.forEach(function (device) {
-                if (device.kind === 'videoinput') {
-                    // alert(device.kind + ': ' + device.label + ' id = ' + device.deviceId)
-                    id = device.deviceId
-                }
-            })
-            navigator.mediaDevices
-                .getUserMedia({ video: { deviceId: id, width: 1280, height: 720 } })
-                .then(stream => {
-                    const video = document.querySelector('video')
-                    // включаем поток в магический URL
-                    if (video !== null) video.srcObject = stream
-                })
-            // alert(id)
-        })
+        //     devices.forEach(function (device) {
+        //         if (device.kind === 'videoinput') {
+        //             // alert(device.kind + ': ' + device.label + ' id = ' + device.deviceId)
+        //             id = device.deviceId
+        //         }
+        //     })
+        //     navigator.mediaDevices
+        //         .getUserMedia({ video: { deviceId: id, width: 1280, height: 720 } })
+        //         .then(stream => {
+        //             const video = document.querySelector('video')
+        //             // включаем поток в магический URL
+        //             if (video !== null) video.srcObject = stream
+        //         })
+        //     // alert(id)
+        // })
     }, [])
 
     if (!isData) {
@@ -158,6 +157,17 @@ function App() {
                     zIndex: 1000,
                 }}
             ></div>
+            {isDebug && (
+                <div
+                    id='log'
+                    style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: 0,
+                        color: 'white',
+                    }}
+                ></div>
+            )}
         </>
     )
 }
