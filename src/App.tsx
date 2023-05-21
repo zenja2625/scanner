@@ -1,17 +1,19 @@
 import { ElementRef, useEffect, useRef, useState } from 'react'
 import { Sponsor } from './types'
 import './App.css'
-
 import cv, { Mat } from 'opencv-ts'
 import { useModel } from './useModel'
 import { Card } from './Card'
 import { SeletedSponsorList } from './SeletedSponsorList'
 import { Camera } from './Camera'
 import { isDebug } from './index'
+import { useGoogleApi } from './useGoogleApi'
 
 type CameraRef = ElementRef<typeof Camera>
 
 function App() {
+    const { access, authorize, saveImageToGoogleDrive } = useGoogleApi()
+
     const [cvLoad, setCvLoad] = useState(false)
 
     const [listOpen, setListOpen] = useState(false)
@@ -50,6 +52,8 @@ function App() {
         // })
     }, [])
 
+    // const canvasRef = useRef<HTMLCanvasElement>(null)
+
     if (!isData) {
         return (
             <div className='App'>
@@ -87,6 +91,49 @@ function App() {
         <>
             <div className='wrapper'>
                 <Camera ref={cameraRef} height={200} width={200} />
+                <div
+                    onClick={() => authorize()}
+                    className={'list-button google-button' + (access ? ' google-button-auth' : '')}
+                >
+                    G
+                </div>
+                {/* <canvas
+                    ref={canvasRef}
+                    style={{
+                        // width: '200px',
+                        // height: '200px',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        // backgroundColor: 'white',
+                    }}
+                    width={200}
+                    height={200}
+                ></canvas> */}
+
+                {/* <div
+                    onClick={() => {
+                        const src = new cv.Mat(200, 200, cv.CV_8UC3, new cv.Scalar(0, 255, 0))
+
+                        cv.rectangle(
+                            src,
+                            new cv.Point(50, 50),
+                            new cv.Point(150, 150),
+                            new cv.Scalar(255, 0, 0),
+                            3
+                        )
+
+                        if (canvasRef.current) {
+                            // alert('show')
+                            cv.imshow(canvasRef.current, src)
+                            canvasRef.current.toBlob(blob => console.log(blob))
+                        }
+                        saveImageToGoogleDrive(src)
+                    }}
+                    className='list-button'
+                >
+                    Google Drive
+                </div> */}
                 <div className='card-wrapper'>
                     <div className='list-button' onClick={() => setListOpen(true)}>
                         Список
@@ -128,6 +175,8 @@ function App() {
 
                             if (src) {
                                 searchContours(src, setImages, setMatchSponsors)
+                                saveImageToGoogleDrive(src)
+                                //!!!!!!!!!!!!!!!!!!!
                             }
                         }}
                         className='button'

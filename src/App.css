@@ -138,6 +138,20 @@
     margin-left: 5px;
 }
 
+.google-button {
+    font-weight: bold;
+    font-size: 1.2em;
+    background-color: firebrick;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 10px;
+}
+
+.google-button-auth {
+    background-color: forestgreen;
+}
+
 .refresh {
     height: 80%;
     /* transition: height 200ms ease-in-out; */

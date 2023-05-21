@@ -58,6 +58,11 @@ export const useModel = () => {
 
             const numbe: number[][] = []
 
+
+            cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0)
+
+
+
             for (let thresh = 170; thresh >= 0; thresh -= 10) {
                 cv.threshold(src, threshold, thresh, 255, cv.THRESH_BINARY)
 

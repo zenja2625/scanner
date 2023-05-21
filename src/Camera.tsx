@@ -27,13 +27,14 @@ const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = ({ height, width }, 
         const videoDevices = devices.filter(devise => devise.kind === 'videoinput')
         const deviceId = videoDevices[videoDevices.length - 1]?.deviceId || null
 
-        if (!deviceId) return
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { deviceId, width: 1280, height: 720 },
-        })
-        if (videoRef.current !== null) {
-            setShowRefresh(false)
-            videoRef.current.srcObject = stream
+        if (deviceId) {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { deviceId, width: 1280, height: 720 },
+            })
+            if (videoRef.current !== null) {
+                setShowRefresh(false)
+                videoRef.current.srcObject = stream
+            }
         }
 
         setLoadCamera(false)
@@ -57,7 +58,8 @@ const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = ({ height, width }, 
             capture.read(src)
             const rect = new cv.Rect(video.width / 2 - 100, video.height / 2 - 100, width, height)
             src = src.roi(rect)
-            cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0)
+
+            // cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0)
 
             return src
         },
@@ -86,6 +88,7 @@ const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = ({ height, width }, 
                         fontSize: '40px',
                         position: 'absolute',
                         zIndex: 1,
+                        backgroundColor: 'black',
                     }}
                 >
                     <img
