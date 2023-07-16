@@ -1,13 +1,13 @@
 import * as tf from '@tensorflow/tfjs'
 import { useCallback, useEffect, useState } from 'react'
 import cv, { Mat } from 'opencv-ts'
-import { Rect, Sponsor } from './types'
+import { ID, Rect, Sponsor } from './types'
 import { log } from './log'
 import { matchesCount } from './matchesCount'
 
 export const useModel = () => {
     const [model, setModel] = useState<tf.LayersModel | null>(null)
-    const [ids, setIds] = useState<{ number: number[]; name: string; phone: string | null }[]>([])
+    const [ids, setIds] = useState<ID[]>([])
 
     useEffect(() => {
         const loadModel = async () => {
@@ -17,7 +17,7 @@ export const useModel = () => {
                 setIds(JSON.parse(data))
             }
 
-            const model = await tf.loadLayersModel('/scannerv2/model.json')
+            const model = await tf.loadLayersModel('/model.json')
             // const model = await tf.loadLayersModel('/scannerv2/model.json')
             // alert(tf.getBackend())
 

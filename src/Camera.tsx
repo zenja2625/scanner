@@ -12,7 +12,7 @@ import refresh from './refresh.svg'
 import { Coors } from './types'
 
 type Size = { width: number; height: number }
-type CameraRef = { getScreen: () => Mat | null }
+type CameraRef = { getScreen: () => Promise<Mat | null> }
 
 const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = ({ height, width }, ref) => {
     const [loadCamera, setLoadCamera] = useState(false)
@@ -45,23 +45,22 @@ const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = ({ height, width }, 
     }, [startStream])
 
     useImperativeHandle(ref, () => ({
-        getScreen: () => {
+        getScreen: async () => {
             const video = videoRef.current
 
             if (!video) return null
 
-            let src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4)
-            video.height = video.videoHeight
-            video.width = video.videoWidth
-            const capture = new cv.VideoCapture(video)
+            const bitmap = await createImageBitmap(video)
+            const c1 = document.getElementById('show') as HTMLCanvasElement
+            c1.height = 200
+            c1.width = 200
+            const ctx = c1.getContext('2d')
+            ctx?.drawImage(bitmap, offset.left, offset.top, 200, 200, 0, 0, 200, 200)
+            bitmap.close()
 
-            capture.read(src)
-            const rect = new cv.Rect(video.width / 2 - 100, video.height / 2 - 100, width, height)
-            src = src.roi(rect)
+            const img = cv.imread('show')
 
-            // cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0)
-
-            return src
+            return img
         },
     }))
 
@@ -116,6 +115,14 @@ const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = ({ height, width }, 
                 }}
                 autoPlay
             ></video>
+            <canvas
+                id='showMatches'
+                style={{
+                    position: 'absolute',
+                    height: '100%',
+                    // backgroundColor: 'yellow',
+                }}
+            ></canvas>
         </div>
     )
 }

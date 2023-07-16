@@ -15,3 +15,16 @@ export type Coors = {
     left: number
     top: number
 }
+export type ID = {
+    number: number[]
+    name: string
+    phone: string | null
+}
+
+export type Match = {
+    number: number[]
+    match: number
+    recognizeString: string
+    name: string
+    phone: string | null
+}

@@ -1,5 +1,5 @@
 import { ElementRef, useEffect, useRef, useState } from 'react'
-import { Sponsor } from './types'
+import { ID, Sponsor } from './types'
 import './App.css'
 import cv, { Mat } from 'opencv-ts'
 import { useModel } from './useModel'
@@ -8,6 +8,7 @@ import { SeletedSponsorList } from './SeletedSponsorList'
 import { Camera } from './Camera'
 import { isDebug } from './index'
 import { useGoogleApi } from './useGoogleApi'
+import { usePredictWorker } from './usePredictWorker'
 
 type CameraRef = ElementRef<typeof Camera>
 
@@ -19,42 +20,27 @@ function App() {
     const [listOpen, setListOpen] = useState(false)
     const [matchSponsors, setMatchSponsors] = useState<Array<Sponsor>>([])
     const [sponsors, setSponsors] = useState<Array<Sponsor>>([])
+    const [ids, setIds] = useState<ID[]>([])
 
     const [, setImages] = useState<{ name: string; value: Mat }[]>([])
 
-    const { isLoad, isData, searchContours, setIds } = useModel()
+    const { isLoaded, searchContours } = usePredictWorker()
+    // const { isLoad, isData, searchContours, setIds: setIds1 } = useModel()
 
     const cameraRef = useRef<CameraRef>(null)
 
     useEffect(() => {
+        const data = window.localStorage.getItem('data')
+
+        if (data) {
+            setIds(JSON.parse(data))
+        }
         cv.onRuntimeInitialized = () => {
             setCvLoad(true)
         }
-
-        // alert('useEffect')
-        // navigator.mediaDevices.enumerateDevices().then(function (devices) {
-        //     let id = ''
-
-        //     devices.forEach(function (device) {
-        //         if (device.kind === 'videoinput') {
-        //             // alert(device.kind + ': ' + device.label + ' id = ' + device.deviceId)
-        //             id = device.deviceId
-        //         }
-        //     })
-        //     navigator.mediaDevices
-        //         .getUserMedia({ video: { deviceId: id, width: 1280, height: 720 } })
-        //         .then(stream => {
-        //             const video = document.querySelector('video')
-        //             // включаем поток в магический URL
-        //             if (video !== null) video.srcObject = stream
-        //         })
-        //     // alert(id)
-        // })
     }, [])
 
-    // const canvasRef = useRef<HTMLCanvasElement>(null)
-
-    if (!isData) {
+    if (!ids.length) {
         return (
             <div className='App'>
                 <header className='App-header' style={{ justifyContent: 'center' }}>
@@ -89,6 +75,16 @@ function App() {
 
     return (
         <>
+            <canvas
+                id='show'
+                style={{
+                    position: 'absolute',
+                    top: '205px',
+                    backgroundColor: 'red',
+                    display: 'none',
+                }}
+            ></canvas>
+
             <div className='wrapper'>
                 <Camera ref={cameraRef} height={200} width={200} />
                 <div
@@ -97,43 +93,6 @@ function App() {
                 >
                     G
                 </div>
-                {/* <canvas
-                    ref={canvasRef}
-                    style={{
-                        // width: '200px',
-                        // height: '200px',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        // backgroundColor: 'white',
-                    }}
-                    width={200}
-                    height={200}
-                ></canvas> */}
-
-                {/* <div
-                    onClick={() => {
-                        const src = new cv.Mat(200, 200, cv.CV_8UC3, new cv.Scalar(0, 255, 0))
-
-                        cv.rectangle(
-                            src,
-                            new cv.Point(50, 50),
-                            new cv.Point(150, 150),
-                            new cv.Scalar(255, 0, 0),
-                            3
-                        )
-
-                        if (canvasRef.current) {
-                            // alert('show')
-                            cv.imshow(canvasRef.current, src)
-                            canvasRef.current.toBlob(blob => console.log(blob))
-                        }
-                        saveImageToGoogleDrive(src)
-                    }}
-                    className='list-button'
-                >
-                    Google Drive
-                </div> */}
                 <div className='card-wrapper'>
                     <div className='list-button' onClick={() => setListOpen(true)}>
                         Список
@@ -170,12 +129,62 @@ function App() {
                 </div>
                 <div className='button-wrapper'>
                     <div
-                        onClick={() => {
-                            const src = cameraRef.current?.getScreen()
+                        onClick={async () => {
+                            if (!cvLoad || !isLoaded) return
 
-                            if (src) {
-                                searchContours(src, setImages, setMatchSponsors)
-                                saveImageToGoogleDrive(src)
+                            while (true) {
+                                const src = await cameraRef.current?.getScreen()
+
+                                if (src) {
+                                    const matches = await searchContours(src, ids)
+
+                              
+
+                                    const sponsors: Array<Sponsor> = []
+                                    for (let i = 0; i < 3 && i < matches.length; i++) {
+                                        const element = matches[i]
+
+                                        sponsors.push({
+                                            number: element.number.join(''),
+                                            name: element.name.split(' ').pop() || element.name,
+                                            phone: element.phone,
+                                        })
+                                    }
+
+                                    setMatchSponsors(sponsors.reverse())
+
+
+                                    if (
+                                        matches[0] &&
+                                        matches[0].number.join('') === matches[0].recognizeString
+                                    ) {
+                                        setSponsors(prev => {
+                                            const element = matches[0]
+                                            const index = prev.findIndex(
+                                                item => item.number === element.number.join('')
+                                            )
+
+                                            if (index === -1) {
+                                                return [
+                                                    ...prev,
+                                                    {
+                                                        number: element.number.join(''),
+                                                        name:
+                                                            element.name.split(' ').pop() ||
+                                                            element.name,
+                                                        phone: element.phone,
+                                                    },
+                                                ]
+                                            }
+
+                                            return prev
+                                        })
+
+                                        break
+                                    }
+                                }
+
+                                // saveImageToGoogleDrive(src)
                                 //!!!!!!!!!!!!!!!!!!!
                             }
                         }}
@@ -200,7 +209,7 @@ function App() {
                     position: 'absolute',
                     width: '10px',
                     height: '10px',
-                    backgroundColor: !cvLoad || !isLoad ? 'red' : 'greenyellow',
+                    backgroundColor: !cvLoad || !isLoaded ? 'red' : 'greenyellow',
                     left: 10,
                     bottom: 10,
                     zIndex: 1000,
