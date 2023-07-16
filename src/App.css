@@ -154,7 +154,6 @@
 
 .refresh {
     height: 80%;
-    /* transition: height 200ms ease-in-out; */
     pointer-events: none;
 }
 

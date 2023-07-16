@@ -17,10 +17,9 @@ export const useModel = () => {
                 setIds(JSON.parse(data))
             }
 
-            
-            const model = await tf.loadLayersModel('/model.json')
+            const model = await tf.loadLayersModel('/scannerv2/model.json')
+            // const model = await tf.loadLayersModel('/scannerv2/model.json')
             // alert(tf.getBackend())
-
 
             const result = model.predict(tf.zeros([1, 30, 30, 1])) as tf.Tensor<tf.Rank>
 
@@ -45,8 +44,6 @@ export const useModel = () => {
 
             const images: { name: string; value: Mat }[] = []
 
-            
-
             // alert('Start')
             const threshold = new cv.Mat()
 
@@ -58,109 +55,106 @@ export const useModel = () => {
 
             const numbe: number[][] = []
 
-
             cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0)
 
+            cv.adaptiveThreshold(
+                src,
+                threshold,
+                255,
+                cv.ADAPTIVE_THRESH_MEAN_C,
+                cv.THRESH_BINARY,
+                21,
+                21
+            )
 
+            const contours = new cv.MatVector()
+            const hierarchy = new cv.Mat()
 
-            for (let thresh = 170; thresh >= 0; thresh -= 10) {
-                cv.threshold(src, threshold, thresh, 255, cv.THRESH_BINARY)
+            cv.findContours(threshold, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
-                let contours = new cv.MatVector()
-                let hierarchy = new cv.Mat()
+            const rects: Array<Rect> = []
+            const indexes = new Set<number>()
 
-                cv.findContours(
-                    threshold,
-                    contours,
-                    hierarchy,
-                    cv.RETR_TREE,
-                    cv.CHAIN_APPROX_SIMPLE
+            for (let i = 0; i < contours.size(); i++) {
+                if (hierarchy.intPtr(0, i)[3] === -1) continue
+
+                if (indexes.has(hierarchy.intPtr(0, i)[3])) continue
+                indexes.add(i)
+
+                const { x, y, width, height } = cv.boundingRect(contours.get(i))
+                if (height < 10 && width < 10) continue
+                if (width / height > 3) continue
+
+                rects.push({ x: x, y: y, width, height })
+            }
+
+            rects.sort((a, b) => {
+                const bottomA = a.y + a.height
+                const bottomB = b.y + b.height
+
+                return (bottomA >= b.y && a.y <= bottomB ? 0 : a.y - b.y) || a.x - b.x
+            })
+
+            const sortRects: Rect[] = []
+
+            let start = 0
+            let count = 1
+
+            for (let i = 1; i < rects.length; i++) {
+                const y = rects[i].y
+                const rect = rects[i - 1]
+
+                if (rect.y + rect.height > y) {
+                    count++
+                } else {
+                    if (count >= 4 && count <= 6) {
+                        sortRects.push(...rects.slice(start, start + count))
+                    }
+                    start = i
+                    count = 1
+                }
+            }
+
+            allRectsCount += sortRects.length
+
+            for (let i = 0; i < sortRects.length; i++) {
+                const { x, y, height, width } = sortRects[i]
+                const rect = new cv.Rect(x, y, width, height)
+                const number = threshold.roi(rect)
+                const asd: Mat = new cv.Mat()
+                number.copyTo(asd)
+                //Delete
+                const scale = new cv.Mat(30, 30, cv.CV_8UC1, new cv.Scalar(0))
+
+                cv.resize(
+                    number,
+                    scale,
+                    new cv.Size(
+                        height > width ? width * (30 / height) : 30,
+                        height < width ? height * (30 / width) : 30
+                    ),
+                    1,
+                    1,
+                    cv.INTER_NEAREST
                 )
 
-                const rects: Array<Rect> = []
-                const indexes = new Set<number>()
+                const widthOffset = scale.cols < 30 ? 30 - scale.cols : 0
 
-                for (let i = 0; i < contours.size(); i++) {
-                    if (hierarchy.intPtr(0, i)[3] === -1) continue
+                cv.copyMakeBorder(
+                    scale,
+                    scale,
+                    0,
+                    scale.rows < 30 ? 30 - scale.rows : 0,
+                    Math.floor(widthOffset / 2),
+                    widthOffset - Math.floor(widthOffset / 2),
+                    cv.BORDER_CONSTANT,
+                    new cv.Scalar(255)
+                )
 
-                    if (indexes.has(hierarchy.intPtr(0, i)[3])) continue
-                    indexes.add(i)
+                // images.push({ name: '', value: asd })
+                images.push({ name: '', value: scale })
 
-                    const { x, y, width, height } = cv.boundingRect(contours.get(i))
-                    if (height < 10 && width < 10) continue
-                    if (width / height > 3) continue
-
-                    rects.push({ x: x, y: y, width, height })
-                }
-
-                rects.sort((a, b) => {
-                    const bottomA = a.y + a.height
-                    const bottomB = b.y + b.height
-
-                    return (bottomA >= b.y && a.y <= bottomB ? 0 : a.y - b.y) || a.x - b.x
-                })
-
-                const sortRects: Rect[] = []
-
-                let start = 0
-                let count = 1
-
-                for (let i = 1; i < rects.length; i++) {
-                    const y = rects[i].y
-                    const rect = rects[i - 1]
-
-                    if (rect.y + rect.height > y) {
-                        count++
-                    } else {
-                        if (count >= 4 && count <= 6) {
-                            sortRects.push(...rects.slice(start, start + count))
-                        }
-                        start = i
-                        count = 1
-                    }
-                }
-
-                allRectsCount += sortRects.length
-
-                for (let i = 0; i < sortRects.length; i++) {
-                    const { x, y, height, width } = sortRects[i]
-                    const rect = new cv.Rect(x, y, width, height)
-                    const number = threshold.roi(rect)
-                    const asd: Mat = new cv.Mat()
-                    number.copyTo(asd)
-                    //Delete
-                    const scale = new cv.Mat(30, 30, cv.CV_8UC1, new cv.Scalar(0))
-
-                    cv.resize(
-                        number,
-                        scale,
-                        new cv.Size(
-                            height > width ? width * (30 / height) : 30,
-                            height < width ? height * (30 / width) : 30
-                        ),
-                        1,
-                        1,
-                        cv.INTER_NEAREST
-                    )
-
-                    const widthOffset = scale.cols < 30 ? 30 - scale.cols : 0
-
-                    cv.copyMakeBorder(
-                        scale,
-                        scale,
-                        0,
-                        scale.rows < 30 ? 30 - scale.rows : 0,
-                        Math.floor(widthOffset / 2),
-                        widthOffset - Math.floor(widthOffset / 2),
-                        cv.BORDER_CONSTANT,
-                        new cv.Scalar(255)
-                    )
-
-                    // images.push({ name: '', value: asd })
-                    images.push({ name: '', value: scale })
-
-                    numbe.push(Array.from(scale.data))
-                }
+                numbe.push(Array.from(scale.data))
             }
 
             if (numbe.length) {
@@ -216,8 +210,6 @@ export const useModel = () => {
             }
 
             // logs += '\n' + allRectsCount
-
-            
 
             setImages(images)
         },
