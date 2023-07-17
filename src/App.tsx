@@ -2,7 +2,6 @@ import { ElementRef, useEffect, useRef, useState } from 'react'
 import { ID, Sponsor } from './types'
 import './App.css'
 import cv, { Mat } from 'opencv-ts'
-import { useModel } from './useModel'
 import { Card } from './Card'
 import { SeletedSponsorList } from './SeletedSponsorList'
 import { Camera } from './Camera'
@@ -14,7 +13,6 @@ import { log } from './log'
 type CameraRef = ElementRef<typeof Camera>
 
 function App() {
-  const [isButtonWait, setIsButtonWait] = useState(false)
   const stopLoopRef = useRef(false)
   const [isRecord, setIsRecord] = useState(false)
 
@@ -30,64 +28,8 @@ function App() {
   const [, setImages] = useState<{ name: string; value: Mat }[]>([])
 
   const { isLoaded, searchContours } = usePredictWorker()
-  // const { isLoad, isData, searchContours, setIds: setIds1 } = useModel()
 
   const cameraRef = useRef<CameraRef>(null)
-
-  // useEffect(() => {
-  //     const foo = async () => {
-  //         const time = performance.now()
-
-  //         const src = await cameraRef.current?.getScreen()
-
-  //         if (src) {
-  //             const matches = await searchContours(src, ids)
-
-  //             const sponsors: Array<Sponsor> = []
-  //             for (let i = 0; i < 3 && i < matches.length; i++) {
-  //                 const element = matches[i]
-
-  //                 sponsors.push({
-  //                     number: element.number.join(''),
-  //                     name: element.name.split(' ').pop() || element.name,
-  //                     phone: element.phone,
-  //                 })
-  //             }
-
-  //             setMatchSponsors(sponsors.reverse())
-
-  //             if (matches[0] && matches[0].number.join('') === matches[0].recognizeString) {
-  //                 setSponsors(prev => {
-  //                     const element = matches[0]
-  //                     const index = prev.findIndex(
-  //                         item => item.number === element.number.join('')
-  //                     )
-
-  //                     if (index === -1) {
-  //                         return [
-  //                             ...prev,
-  //                             {
-  //                                 number: element.number.join(''),
-  //                                 name: element.name.split(' ').pop() || element.name,
-  //                                 phone: element.phone,
-  //                             },
-  //                         ]
-  //                     }
-
-  //                     return prev
-  //                 })
-  //             }
-  //         }
-
-  //         await log(Math.floor(performance.now() - time) + 'ms ')
-  //         // saveImageToGoogleDrive(src)
-  //         //!!!!!!!!!!!!!!!!!!!
-  //     }
-
-  //     if (isRecord) {
-  //         foo()
-  //     }
-  // }, [isRecord])
 
   useEffect(() => {
     const data = window.localStorage.getItem('data')
@@ -193,6 +135,8 @@ function App() {
         <div className="button-wrapper">
           <div
             onClick={async () => {
+              if (!cvLoad || !isLoaded) return
+
               if (!isRecord) {
                 setIsRecord(true)
 
@@ -265,7 +209,7 @@ function App() {
               } else {
                 stopLoopRef.current = true
               }
-              // if (!cvLoad || !isLoaded) return
+              //
             }}
             className={`button ${isRecord ? 'button-press' : ''}`}
           >

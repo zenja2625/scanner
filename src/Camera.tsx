@@ -12,7 +12,7 @@ import refresh from './refresh.svg'
 import { Coors } from './types'
 
 type Size = { width: number; height: number }
-type CameraRef = { getScreen: () => Promise<Mat | null> }
+type CameraRef = { getScreen: () => Promise<number[] | null> }
 
 const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = (
   { height, width },
@@ -63,9 +63,13 @@ const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = (
       ctx?.drawImage(bitmap, offset.left, offset.top, 200, 200, 0, 0, 200, 200)
       bitmap.close()
 
-      const img = cv.imread('show')
+      const data = ctx?.getImageData(0, 0, 200, 200).data
 
-      return img
+      if (data) {
+        return Array.from(data)
+      }
+
+      return null
     },
   }))
 
