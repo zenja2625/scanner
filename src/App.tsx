@@ -9,10 +9,16 @@ import { Camera } from './Camera'
 import { isDebug } from './index'
 import { useGoogleApi } from './useGoogleApi'
 import { usePredictWorker } from './usePredictWorker'
+import { log } from './log'
 
 type CameraRef = ElementRef<typeof Camera>
 
 function App() {
+    const [isButtonWait, setIsButtonWait] = useState(false)
+
+    const stopLoopRef = useRef(false)
+    const [isRecord, setIsRecord] = useState(false)
+
     const { access, authorize, saveImageToGoogleDrive } = useGoogleApi()
 
     const [cvLoad, setCvLoad] = useState(false)
@@ -28,6 +34,61 @@ function App() {
     // const { isLoad, isData, searchContours, setIds: setIds1 } = useModel()
 
     const cameraRef = useRef<CameraRef>(null)
+
+    // useEffect(() => {
+    //     const foo = async () => {
+    //         const time = performance.now()
+
+    //         const src = await cameraRef.current?.getScreen()
+
+    //         if (src) {
+    //             const matches = await searchContours(src, ids)
+
+    //             const sponsors: Array<Sponsor> = []
+    //             for (let i = 0; i < 3 && i < matches.length; i++) {
+    //                 const element = matches[i]
+
+    //                 sponsors.push({
+    //                     number: element.number.join(''),
+    //                     name: element.name.split(' ').pop() || element.name,
+    //                     phone: element.phone,
+    //                 })
+    //             }
+
+    //             setMatchSponsors(sponsors.reverse())
+
+    //             if (matches[0] && matches[0].number.join('') === matches[0].recognizeString) {
+    //                 setSponsors(prev => {
+    //                     const element = matches[0]
+    //                     const index = prev.findIndex(
+    //                         item => item.number === element.number.join('')
+    //                     )
+
+    //                     if (index === -1) {
+    //                         return [
+    //                             ...prev,
+    //                             {
+    //                                 number: element.number.join(''),
+    //                                 name: element.name.split(' ').pop() || element.name,
+    //                                 phone: element.phone,
+    //                             },
+    //                         ]
+    //                     }
+
+    //                     return prev
+    //                 })
+    //             }
+    //         }
+
+    //         await log(Math.floor(performance.now() - time) + 'ms ')
+    //         // saveImageToGoogleDrive(src)
+    //         //!!!!!!!!!!!!!!!!!!!
+    //     }
+
+    //     if (isRecord) {
+    //         foo()
+    //     }
+    // }, [isRecord])
 
     useEffect(() => {
         const data = window.localStorage.getItem('data')
@@ -130,65 +191,17 @@ function App() {
                 <div className='button-wrapper'>
                     <div
                         onClick={async () => {
-                            if (!cvLoad || !isLoaded) return
+                            if (!isButtonWait) {
+                                setIsButtonWait(true)
 
-                            while (true) {
-                                const src = await cameraRef.current?.getScreen()
+                                await new Promise(r => setTimeout(r, 2000))
 
-                                if (src) {
-                                    const matches = await searchContours(src, ids)
-
-                              
-
-                                    const sponsors: Array<Sponsor> = []
-                                    for (let i = 0; i < 3 && i < matches.length; i++) {
-                                        const element = matches[i]
-
-                                        sponsors.push({
-                                            number: element.number.join(''),
-                                            name: element.name.split(' ').pop() || element.name,
-                                            phone: element.phone,
-                                        })
-                                    }
-
-                                    setMatchSponsors(sponsors.reverse())
-
-
-                                    if (
-                                        matches[0] &&
-                                        matches[0].number.join('') === matches[0].recognizeString
-                                    ) {
-                                        setSponsors(prev => {
-                                            const element = matches[0]
-                                            const index = prev.findIndex(
-                                                item => item.number === element.number.join('')
-                                            )
-
-                                            if (index === -1) {
-                                                return [
-                                                    ...prev,
-                                                    {
-                                                        number: element.number.join(''),
-                                                        name:
-                                                            element.name.split(' ').pop() ||
-                                                            element.name,
-                                                        phone: element.phone,
-                                                    },
-                                                ]
-                                            }
-
-                                            return prev
-                                        })
-
-                                        break
-                                    }
-                                }
-
-                                // saveImageToGoogleDrive(src)
-                                //!!!!!!!!!!!!!!!!!!!
+                                setIsRecord(prev => !prev)
+                                setIsButtonWait(false)
                             }
+                            // if (!cvLoad || !isLoaded) return
                         }}
-                        className='button'
+                        className={`button ${isRecord ? 'button-press' : ''}`}
                     >
                         <div className='button-center'></div>
                     </div>

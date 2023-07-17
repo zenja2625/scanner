@@ -113,7 +113,7 @@ const CameraFn: ForwardRefRenderFunction<CameraRef, Size> = ({ height, width }, 
                     top: `-${offset.top}px`,
                     left: `-${offset.left}px`,
                 }}
-                autoPlay
+                // autoPlay
             ></video>
             <canvas
                 id='showMatches'

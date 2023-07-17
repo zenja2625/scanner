@@ -46,12 +46,19 @@
     border: 3px solid #282c34;
     position: relative;
     box-shadow: 0 0 0 2px white;
-    transition: border-width 0.06s linear;
+    transition: border-width 0.06s linear, background-color 0.06s linear, box-shadow 0.06s linear;
     flex-grow: 1;
 }
-.button:active {
+/* .button:active {
     border: 6px solid #282c34;
+} */
+
+.button.button-press {
+    border: 6px solid #282c34;
+    background-color: firebrick;
+    box-shadow: 0 0 0 2px firebrick;
 }
+
 .button-wrapper {
     width: 85px;
     height: 85px;
