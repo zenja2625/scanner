@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MessageType } from './workerTypes'
-import cv, { Mat } from 'opencv-ts'
 import { ID, Match } from './types'
-import * as tf from '@tensorflow/tfjs'
+import { log } from './log'
 
 export const usePredictWorker = () => {
   const [isModelLoad, setIsModelLoad] = useState(false)
@@ -15,44 +14,49 @@ export const usePredictWorker = () => {
   >(null)
 
   useEffect(() => {
-    workerRef.current = new Worker(new URL('./worker.ts', import.meta.url))
+    if (workerRef.current === null) {
+      const time = performance.now()
 
-    workerRef.current.onmessage = (e) => {
-      const message = e.data as MessageType
+      workerRef.current = new Worker(new URL('./worker.ts', import.meta.url))
 
-      switch (message.type) {
-        case 'OpenCVIsLoaded':
-          setIsOpencvLoad(true)
-          break
-        case 'ModelIsLoaded':
-          setIsModelLoad(true)
-          break
-        case 'ReturnMathes':
-          /*cv.imshow(
-            'showMatches',
-            cv.matFromArray(200, 200, cv.CV_8UC4, message.draw)
-          )*/
+      workerRef.current.onmessage = (e) => {
+        const message = e.data as MessageType
 
-          const canvas: HTMLCanvasElement | null = document.getElementById(
-            'showMatches'
-          ) as HTMLCanvasElement
-          if (canvas) {
-            const ctx = canvas.getContext('2d')
+        switch (message.type) {
+          case 'OpenCVIsLoaded':
+            setIsOpencvLoad(true)
+            log(`opencv ${Math.floor(performance.now() - time)}`)
+            break
+          case 'ModelIsLoaded':
+            log(`model ${Math.floor(performance.now() - time)}`)
 
-            if (ctx) {
-              const uint8Array = new Uint8ClampedArray(message.draw)
-              const imageData = new ImageData(uint8Array, 200, 200)
 
-              ctx.putImageData(imageData, 0, 0)
+            setIsModelLoad(true)
+            break
+          case 'ReturnMathes':
+            const canvas: HTMLCanvasElement | null = document.getElementById(
+              'showMatches'
+            ) as HTMLCanvasElement
+            if (canvas) {
+              canvas.height = 200
+              canvas.width = 200
+              const ctx = canvas.getContext('2d')
+
+              if (ctx) {
+                const uint8Array = new Uint8ClampedArray(message.draw)
+                const imageData = new ImageData(uint8Array, 200, 200)
+
+                ctx.putImageData(imageData, 0, 0)
+              }
             }
-          }
 
-          resolveRef.current?.(message.matches)
-          resolveRef.current = null
-          break
-        case 'Alert':
-          alert(message.message)
-          break
+            resolveRef.current?.(message.matches)
+            resolveRef.current = null
+            break
+          case 'Alert':
+            alert(message.message)
+            break
+        }
       }
     }
   }, [])

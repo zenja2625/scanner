@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import cv, { Mat } from 'opencv-ts'
 
 const CLIENT_ID = '332017304322-eeq5c6hbnu1m8i4kmq0laj8m8s712ftq.apps.googleusercontent.com'
 const API_KEY = 'AIzaSyBxtIakFEEXuswuHCuPU61IWzcihlFgpro'
@@ -24,42 +23,43 @@ export const useGoogleApi = () => {
         }
     }
 
-    const saveImageToGoogleDrive = async (src: Mat) => {
+    //any as Mat
+    const saveImageToGoogleDrive = async (src: any) => {
         const accessToken = gapiRef.current.client?.getToken()?.access_token
 
         if (!accessToken) return
 
-        const form = new FormData()
+        // const form = new FormData()
 
-        const canvas = document.createElement('canvas')
-        canvas.width = 200
-        canvas.height = 200
+        // const canvas = document.createElement('canvas')
+        // canvas.width = 200
+        // canvas.height = 200
 
-        cv.imshow(canvas, src)
-        canvas.toBlob(blob => {
-            if (!blob) return
+        // cv.imshow(canvas, src)
+        // canvas.toBlob(blob => {
+        //     if (!blob) return
 
-            const file = new File([blob], 'filename.png', { type: 'image/png' })
+        //     const file = new File([blob], 'filename.png', { type: 'image/png' })
 
-            const metadata = {
-                name: 'filename.png',
-                mimeType: 'image/png',
-                parents: ['1cqJMCtdVp1_C-hMRv65EebSynEu60BYz'],
-            }
-            form.append(
-                'metadata',
-                new Blob([JSON.stringify(metadata)], { type: 'application/json' })
-            )
-            form.append('file', file)
+        //     const metadata = {
+        //         name: 'filename.png',
+        //         mimeType: 'image/png',
+        //         parents: ['1cqJMCtdVp1_C-hMRv65EebSynEu60BYz'],
+        //     }
+        //     form.append(
+        //         'metadata',
+        //         new Blob([JSON.stringify(metadata)], { type: 'application/json' })
+        //     )
+        //     form.append('file', file)
 
-            fetch('https://www.googleapis.com/upload/drive/v3/files?&fields=id', {
-                method: 'POST',
-                headers: new Headers({ Authorization: `Bearer ${accessToken}` }),
-                body: form,
-            }).then(res => {
-                console.log('res', res)
-            })
-        })
+        //     fetch('https://www.googleapis.com/upload/drive/v3/files?&fields=id', {
+        //         method: 'POST',
+        //         headers: new Headers({ Authorization: `Bearer ${accessToken}` }),
+        //         body: form,
+        //     }).then(res => {
+        //         console.log('res', res)
+        //     })
+        // })
     }
 
     useEffect(() => {

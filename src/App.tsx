@@ -1,7 +1,6 @@
 import { ElementRef, useEffect, useRef, useState } from 'react'
 import { ID, Sponsor } from './types'
 import './App.css'
-import cv, { Mat } from 'opencv-ts'
 import { Card } from './Card'
 import { SeletedSponsorList } from './SeletedSponsorList'
 import { Camera } from './Camera'
@@ -16,16 +15,12 @@ function App() {
   const stopLoopRef = useRef(false)
   const [isRecord, setIsRecord] = useState(false)
 
-  const { access, authorize, saveImageToGoogleDrive } = useGoogleApi()
-
-  const [cvLoad, setCvLoad] = useState(false)
+  const { access, authorize } = useGoogleApi()
 
   const [listOpen, setListOpen] = useState(false)
   const [matchSponsors, setMatchSponsors] = useState<Array<Sponsor>>([])
   const [sponsors, setSponsors] = useState<Array<Sponsor>>([])
   const [ids, setIds] = useState<ID[]>([])
-
-  const [, setImages] = useState<{ name: string; value: Mat }[]>([])
 
   const { isLoaded, searchContours } = usePredictWorker()
 
@@ -36,9 +31,6 @@ function App() {
 
     if (data) {
       setIds(JSON.parse(data))
-    }
-    cv.onRuntimeInitialized = () => {
-      setCvLoad(true)
     }
   }, [])
 
@@ -135,7 +127,7 @@ function App() {
         <div className="button-wrapper">
           <div
             onClick={async () => {
-              if (!cvLoad || !isLoaded) return
+              if (!isLoaded) return
 
               if (!isRecord) {
                 setIsRecord(true)
@@ -234,7 +226,7 @@ function App() {
           position: 'absolute',
           width: '10px',
           height: '10px',
-          backgroundColor: !cvLoad || !isLoaded ? 'red' : 'greenyellow',
+          backgroundColor: !isLoaded ? 'red' : 'greenyellow',
           left: 10,
           bottom: 10,
           zIndex: 1000,

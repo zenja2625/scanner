@@ -1,6 +1,4 @@
-import { Mat } from 'opencv-ts'
 import { ID } from './types'
-import * as tf from '@tensorflow/tfjs'
 
 export type MessageType =
     | {

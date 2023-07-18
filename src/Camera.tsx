@@ -1,4 +1,3 @@
-import cv, { Mat } from 'opencv-ts'
 import {
   forwardRef,
   ForwardRefRenderFunction,
