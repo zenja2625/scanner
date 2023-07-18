@@ -13,7 +13,7 @@ cv.onRuntimeInitialized = () => {
 
 let model: tf.LayersModel
 
-tf.loadLayersModel('/model.json').then((m) => {
+tf.loadLayersModel(`${process.env.PUBLIC_URL}/model.json`).then((m) => {
   model = m
 
   const result = model.predict(tf.zeros([1, 30, 30, 1])) as tf.Tensor<tf.Rank>

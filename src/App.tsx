@@ -27,6 +27,8 @@ function App() {
   const cameraRef = useRef<CameraRef>(null)
 
   useEffect(() => {
+    console.log(process.env.PUBLIC_URL);
+    
     const data = window.localStorage.getItem('data')
 
     if (data) {
