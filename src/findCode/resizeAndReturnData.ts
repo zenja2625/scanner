@@ -1,8 +1,10 @@
 import cv, { Mat } from 'opencv-ts'
 import { ASD } from '../findCode'
 
-export const resizeAndReturnData = (src: Mat, rectList: ASD[][], size: number) => {
+export const resizeAndReturnData = (src: Mat, rectList: ASD[][], size: number, angle: number) => {
     const numbe: number[][] = []
+
+
 
     for (let j = 0; j < rectList.length; j++) {
         const list = rectList[j]
@@ -13,9 +15,17 @@ export const resizeAndReturnData = (src: Mat, rectList: ASD[][], size: number) =
             const number = src.roi(rect)
             const asd: Mat = new cv.Mat()
             number.copyTo(asd)
+
+            //Wrap to Recognize
+            const dsize = new cv.Size(asd.cols, asd.rows)
+            const center = new cv.Point(asd.cols / 2, asd.rows / 2)
+            const M = cv.getRotationMatrix2D(center, angle, 1)
+            cv.warpAffine(asd, asd, M, dsize)
+            //!!!!!!!!!!!!!!!!!!!!!!!
+
+
             cv.bitwise_not(asd, asd)
 
-            //Delete
             const scale = new cv.Mat(size, size, cv.CV_8UC1, new cv.Scalar(0))
 
             cv.resize(
@@ -30,6 +40,7 @@ export const resizeAndReturnData = (src: Mat, rectList: ASD[][], size: number) =
                 cv.INTER_NEAREST
             )
 
+            
             const widthOffset = scale.cols < size ? size - scale.cols : 0
 
             cv.copyMakeBorder(

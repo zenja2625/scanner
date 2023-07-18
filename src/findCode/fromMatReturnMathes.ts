@@ -43,7 +43,7 @@ export const fromMatReturnMathes = (
         )
       : []
 
-  const numbe = resizeAndReturnData(thresh, rectList, 30)
+  const numbe = resizeAndReturnData(thresh, rectList, 30, angle)
 
   const draw = new cv.Mat(200, 200, cv.CV_8UC4, new cv.Scalar(0, 0, 0, 0))
 
