@@ -12,6 +12,7 @@ export const usePredictWorker = () => {
   const resolveRef = useRef<
     ((value: Match[] | PromiseLike<Match[]>) => void) | null
   >(null)
+  const rejectRef = useRef<((reason?: any) => void) | null>(null)
 
   useEffect(() => {
     if (workerRef.current === null) {
@@ -29,7 +30,6 @@ export const usePredictWorker = () => {
             break
           case 'ModelIsLoaded':
             log(`model ${Math.floor(performance.now() - time)}`)
-
 
             setIsModelLoad(true)
             break
@@ -52,9 +52,17 @@ export const usePredictWorker = () => {
 
             resolveRef.current?.(message.matches)
             resolveRef.current = null
+            rejectRef.current = null
+
             break
           case 'Alert':
             alert(message.message)
+            break
+          case 'Error':
+            resolveRef.current = null
+            rejectRef.current?.(new Error(message.message))
+            rejectRef.current = null
+            promiseRef.current = null
             break
         }
       }
@@ -62,10 +70,11 @@ export const usePredictWorker = () => {
   }, [])
 
   const searchContours = useCallback((src: number[], ids: ID[]) => {
-    const promise = new Promise<Match[]>(async (r) => {
+    const promise = new Promise<Match[]>(async (r, rej) => {
       if (promiseRef.current) await promiseRef.current
 
       resolveRef.current = r
+      rejectRef.current = rej
 
       workerRef.current?.postMessage({
         type: 'FindMatches',

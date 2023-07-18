@@ -132,65 +132,73 @@ function App() {
               if (!isRecord) {
                 setIsRecord(true)
 
+                //Button Animation
+                await new Promise(r => setTimeout(r, 100))
+
                 await new Promise<void>(async (r) => {
-                  while (true) {
-                    //!!!!!!!!!!!!!!!!!!!!
+                  try {
+                    while (true) {
+                      //!!!!!!!!!!!!!!!!!!!!
 
-                    const time = performance.now()
+                      const time = performance.now()
 
-                    const src = await cameraRef.current?.getScreen()
+                      const src = await cameraRef.current?.getScreen()
 
-                    if (src) {
-                      const matches = await searchContours(src, ids)
+                      if (src) {
+                        const matches = await searchContours(src, ids)
 
-                      const sponsors: Array<Sponsor> = []
-                      for (let i = 0; i < 3 && i < matches.length; i++) {
-                        const element = matches[i]
+                        const sponsors: Array<Sponsor> = []
+                        for (let i = 0; i < 3 && i < matches.length; i++) {
+                          const element = matches[i]
 
-                        sponsors.push({
-                          number: element.number.join(''),
-                          name: element.name.split(' ').pop() || element.name,
-                          phone: element.phone,
-                        })
+                          sponsors.push({
+                            number: element.number.join(''),
+                            name: element.name.split(' ').pop() || element.name,
+                            phone: element.phone,
+                          })
+                        }
+
+                        setMatchSponsors(sponsors.reverse())
+
+                        if (
+                          matches[0] &&
+                          matches[0].number.join('') ===
+                            matches[0].recognizeString
+                        ) {
+                          setSponsors((prev) => {
+                            const element = matches[0]
+                            const index = prev.findIndex(
+                              (item) => item.number === element.number.join('')
+                            )
+
+                            if (index === -1) {
+                              return [
+                                ...prev,
+                                {
+                                  number: element.number.join(''),
+                                  name:
+                                    element.name.split(' ').pop() ||
+                                    element.name,
+                                  phone: element.phone,
+                                },
+                              ]
+                            }
+
+                            return prev
+                          })
+                        }
                       }
 
-                      setMatchSponsors(sponsors.reverse())
+                      await log(Math.floor(performance.now() - time) + 'ms ')
 
-                      if (
-                        matches[0] &&
-                        matches[0].number.join('') ===
-                          matches[0].recognizeString
-                      ) {
-                        setSponsors((prev) => {
-                          const element = matches[0]
-                          const index = prev.findIndex(
-                            (item) => item.number === element.number.join('')
-                          )
+                      //!!!!!!
 
-                          if (index === -1) {
-                            return [
-                              ...prev,
-                              {
-                                number: element.number.join(''),
-                                name:
-                                  element.name.split(' ').pop() || element.name,
-                                phone: element.phone,
-                              },
-                            ]
-                          }
-
-                          return prev
-                        })
+                      if (stopLoopRef.current) {
+                        break
                       }
                     }
-
-                    await log(Math.floor(performance.now() - time) + 'ms ')
-
-                    //!!!!!!
-
-                    if (stopLoopRef.current) {
-                      break
-                    }
+                  } catch (error) {
+                    alert(error)
                   }
 
                   r()

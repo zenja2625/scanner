@@ -3,14 +3,15 @@ import * as tf from '@tensorflow/tfjs'
 import { MessageType } from './workerTypes'
 import { fromMatReturnMathes } from './findCode'
 
+declare function postMessage(message: MessageType): void
+
 cv.onRuntimeInitialized = () => {
   postMessage({
     type: 'OpenCVIsLoaded',
-  } as MessageType)
+  })
 }
 
 let model: tf.LayersModel
-
 
 tf.loadLayersModel('/model.json').then((m) => {
   model = m
@@ -41,7 +42,7 @@ onmessage = (e) => {
         src.delete()
       } catch (error) {
         postMessage({
-          type: 'Alert',
+          type: 'Error',
           message: (error as any).toString(),
         } as MessageType)
       }
