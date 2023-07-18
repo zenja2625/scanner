@@ -33,6 +33,10 @@ export const findFirstLineFuncOrNull = (src: Mat, angle: number) => {
     const radians = (angle * Math.PI) / 180
     const tan = Math.tan(radians)
 
+    contours.delete()
+    rotate.delete()
+    hierarchy.delete()
+
     return minYContourIndex !== -1
         ? (x: number) => Math.round((x - src.rows / 2) * tan + minYContour)
         : null

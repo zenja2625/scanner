@@ -11,6 +11,7 @@ cv.onRuntimeInitialized = () => {
 
 let model: tf.LayersModel
 
+
 tf.loadLayersModel('/model.json').then((m) => {
   model = m
 
@@ -35,6 +36,9 @@ onmessage = (e) => {
           matches: matches,
           draw: Array.from(draw.data),
         } as MessageType)
+
+        draw.delete()
+        src.delete()
       } catch (error) {
         postMessage({
           type: 'Alert',

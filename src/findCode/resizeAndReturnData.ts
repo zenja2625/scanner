@@ -44,6 +44,9 @@ export const resizeAndReturnData = (src: Mat, rectList: ASD[][], size: number) =
             )
 
             numbe.push(Array.from(scale.data))
+
+            asd.delete()
+            scale.delete()
         }
     }
 

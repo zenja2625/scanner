@@ -28,5 +28,7 @@ export const findContourRects = (src: Mat) => {
         rectsSortX.splice(j, 0, { rect, contour })
     }
 
+    //contours.delete()
+    hierarchy.delete()
     return rectsSortX
 }

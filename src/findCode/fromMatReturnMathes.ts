@@ -59,10 +59,11 @@ export const fromMatReturnMathes = (
     .sub(offset)
     .div(offset)
 
-  const pr_tensor = model.predictOnBatch(tensor)
+  const pr_tensor = model.predictOnBatch(tensor) as tf.Tensor<tf.Rank>
   const argMax = Array.from(
-    (pr_tensor as tf.Tensor<tf.Rank>).argMax(1).dataSync()
+    pr_tensor.argMax(1).dataSync()
   )
+  pr_tensor.dispose()
 
   let predictStartIndex = 0
   const matches: {
@@ -122,6 +123,9 @@ export const fromMatReturnMathes = (
     new cv.Point(200, getFirstLineY?.(200) || -1),
     new cv.Scalar(255, 0, 0, 255)
   )
+
+  gray.delete()
+  thresh.delete()
 
   return { matches, draw }
 }
