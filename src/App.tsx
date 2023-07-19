@@ -27,8 +27,6 @@ function App() {
   const cameraRef = useRef<CameraRef>(null)
 
   useEffect(() => {
-    console.log(process.env.PUBLIC_URL);
-    
     const data = window.localStorage.getItem('data')
 
     if (data) {
@@ -80,7 +78,16 @@ function App() {
           display: 'none',
         }}
       ></canvas>
-
+      <div
+        id="tf"
+        style={{
+          position: 'absolute',
+          top: '200px',
+          width: '100%',
+          textAlign: 'center',
+          color: 'white',
+        }}
+      ></div>
       <div className="wrapper">
         <Camera ref={cameraRef} height={200} width={200} />
         <div
@@ -135,7 +142,7 @@ function App() {
                 setIsRecord(true)
 
                 //Button Animation
-                await new Promise(r => setTimeout(r, 100))
+                await new Promise((r) => setTimeout(r, 100))
 
                 await new Promise<void>(async (r) => {
                   try {

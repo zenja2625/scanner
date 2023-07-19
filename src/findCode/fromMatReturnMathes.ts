@@ -10,6 +10,9 @@ import {
   sortRectsByLines,
 } from '../findCode'
 import { ID } from '../types'
+import { MessageType } from '../workerTypes'
+
+declare function postMessage(message: MessageType): void
 
 export const fromMatReturnMathes = (
   src: Mat,
@@ -54,16 +57,26 @@ export const fromMatReturnMathes = (
     }
 
   const offset = tf.scalar(127.5)
-  const tensor = tf
-    .tensor(numbe, [numbe.length, 30, 30, 1])
-    .sub(offset)
-    .div(offset)
+  const tensor = tf.tensor(numbe, [numbe.length, 30, 30, 1])
+  const sub = tensor.sub(offset)
+  const div = sub.div(offset)
 
-  const pr_tensor = model.predictOnBatch(tensor) as tf.Tensor<tf.Rank>
-  const argMax = Array.from(
-    pr_tensor.argMax(1).dataSync()
-  )
+  const pr_tensor = model.predictOnBatch(div) as tf.Tensor<tf.Rank>
+  const argMax_tensor = pr_tensor.argMax(1)
+
+  const argMax = Array.from(argMax_tensor.dataSync())
+
+  tensor.dispose()
+  offset.dispose()
   pr_tensor.dispose()
+  argMax_tensor.dispose()
+  sub.dispose()
+  div.dispose()
+
+  postMessage({
+    type: 'TensorflowMemory',
+    value: `Tensors: ${tf.memory().numTensors} Bytes ${tf.memory().numBytes}`,
+  })
 
   let predictStartIndex = 0
   const matches: {

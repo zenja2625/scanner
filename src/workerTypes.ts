@@ -31,3 +31,4 @@ export type MessageType =
       type: 'Error'
       message: string
     }
+  | { type: 'TensorflowMemory'; value: string }

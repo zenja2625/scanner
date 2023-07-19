@@ -38,13 +38,13 @@ export const usePredictWorker = () => {
               'showMatches'
             ) as HTMLCanvasElement
             if (canvas) {
-              canvas.height = 200
-              canvas.width = 200
               const ctx = canvas.getContext('2d')
 
               if (ctx) {
                 const uint8Array = new Uint8ClampedArray(message.draw)
                 const imageData = new ImageData(uint8Array, 200, 200)
+                canvas.height = imageData.height
+                canvas.width = imageData.width
 
                 ctx.putImageData(imageData, 0, 0)
               }
@@ -63,6 +63,11 @@ export const usePredictWorker = () => {
             rejectRef.current?.(new Error(message.message))
             rejectRef.current = null
             promiseRef.current = null
+            break
+          case 'TensorflowMemory':
+            const tensor = document.getElementById('tf')
+
+            if (tensor) tensor.innerHTML = message.value
             break
         }
       }
