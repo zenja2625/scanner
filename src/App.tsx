@@ -4,7 +4,6 @@ import './App.css'
 import { Card } from './Card'
 import { SeletedSponsorList } from './SeletedSponsorList'
 import { Camera } from './Camera'
-import { isDebug } from './index'
 import { useGoogleApi } from './useGoogleApi'
 import { usePredictWorker } from './usePredictWorker'
 import { log } from './log'
@@ -14,6 +13,8 @@ type CameraRef = ElementRef<typeof Camera>
 function App() {
   const stopLoopRef = useRef(false)
   const [isRecord, setIsRecord] = useState(false)
+
+  const [isDebug, setIsDebug] = useState(true)
 
   const { access, authorize } = useGoogleApi()
 
@@ -86,8 +87,18 @@ function App() {
           width: '100%',
           textAlign: 'center',
           color: 'white',
+          display: isDebug ? 'block' : 'none'
         }}
       ></div>
+      <div
+        onClick={() => setIsDebug((prev) => !prev)}
+        className="list-button google-button"
+        style={{
+          top: '60px',
+        }}
+      >
+        D
+      </div>
       <div className="wrapper">
         <Camera ref={cameraRef} height={200} width={200} />
         <div
@@ -198,7 +209,7 @@ function App() {
                         }
                       }
 
-                      await log(Math.floor(performance.now() - time) + 'ms ')
+                      await log(Math.floor(1000 / (performance.now() - time)) + ' fps')
 
                       //!!!!!!
 
@@ -249,7 +260,7 @@ function App() {
           zIndex: 1000,
         }}
       ></div>
-      {isDebug && (
+   
         <div
           id="log"
           style={{
@@ -257,9 +268,10 @@ function App() {
             right: 0,
             top: 0,
             color: 'white',
+            display: isDebug ? 'block' : 'none'
           }}
         ></div>
-      )}
+    
     </>
   )
 }
