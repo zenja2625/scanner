@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import { FC, useLayoutEffect } from 'react'
 import { Card } from './Card'
 import { Sponsor } from './types'
 
@@ -11,6 +11,10 @@ export const SeletedSponsorList: FC<{
     // const message =
     //     'Привет📦 твой заказ Орифлейм пришёл.  🕒 Мы работаем: Понедельник, Среда и Пятница с 15:00 до 17:30. До встречи 💄 '
     const message = 'Привет📦заказ Орифлейм пришёл. ВНИМАНИЕ ❗ Новый адрес: ул. Saules 23(2.stāvs) Мы работаем: Пон., Среда и Пятница 15:00-17:30💄'
+
+    useLayoutEffect(() => {
+        if (sponsors.length === 0) close()
+    }, [sponsors, close])
 
     return (
         <div className='popup'>

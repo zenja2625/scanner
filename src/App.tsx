@@ -87,7 +87,7 @@ function App() {
           width: '100%',
           textAlign: 'center',
           color: 'white',
-          display: isDebug ? 'block' : 'none'
+          display: isDebug ? 'block' : 'none',
         }}
       ></div>
       <div
@@ -109,41 +109,44 @@ function App() {
         >
           G
         </div>
-        <div className="card-wrapper">
-          <div className="list-button" onClick={() => setListOpen(true)}>
-            Список
-          </div>
-          <div className="card-list-wrapper">
-            <div className="card-list">
-              {sponsors
-                .filter((_, index) => index > sponsors.length - 1 - 3)
-                .map(({ number: code, name, phone }) => (
-                  <Card key={code} number={code} name={name} phone={phone} />
-                ))}
+        {!!sponsors.length && (
+          <div className="card-wrapper">
+            <div className="list-button" onClick={() => setListOpen(true)}>
+              Список
             </div>
-            <div className="card-list">
-              {matchSponsors.map(({ number: code, name, phone }) => {
-                const isSelected =
-                  sponsors.findIndex((sponsor) => sponsor.number === code) !==
-                  -1
+            <div className="card-list-wrapper">
+              <div className="card-list">
+                {sponsors
+                  .filter((_, index) => index > sponsors.length - 1 - 3)
+                  .map(({ number: code, name, phone }) => (
+                    <Card key={code} number={code} name={name} phone={phone} />
+                  ))}
+              </div>
+              <div className="card-list">
+                {matchSponsors.map(({ number: code, name, phone }) => {
+                  const isSelected =
+                    sponsors.findIndex((sponsor) => sponsor.number === code) !==
+                    -1
 
-                return (
-                  <Card
-                    isSelected={isSelected}
-                    setSponsor={(sponsor) => {
-                      if (!isSelected) setSponsors((prev) => [...prev, sponsor])
-                    }}
-                    key={code}
-                    number={code}
-                    name={name}
-                    phone={phone}
-                  />
-                )
-              })}
+                  return (
+                    <Card
+                      isSelected={isSelected}
+                      setSponsor={(sponsor) => {
+                        if (!isSelected)
+                          setSponsors((prev) => [...prev, sponsor])
+                      }}
+                      key={code}
+                      number={code}
+                      name={name}
+                      phone={phone}
+                    />
+                  )
+                })}
+              </div>
             </div>
+            {sponsors.length}
           </div>
-          {sponsors.length}
-        </div>
+        )}
         <div className="button-wrapper">
           <div
             onClick={async () => {
@@ -209,7 +212,9 @@ function App() {
                         }
                       }
 
-                      await log(Math.floor(1000 / (performance.now() - time)) + ' fps')
+                      await log(
+                        Math.floor(1000 / (performance.now() - time)) + ' fps'
+                      )
 
                       //!!!!!!
 
@@ -260,18 +265,17 @@ function App() {
           zIndex: 1000,
         }}
       ></div>
-   
-        <div
-          id="log"
-          style={{
-            position: 'absolute',
-            right: 0,
-            top: 0,
-            color: 'white',
-            display: isDebug ? 'block' : 'none'
-          }}
-        ></div>
-    
+
+      <div
+        id="log"
+        style={{
+          position: 'absolute',
+          right: 0,
+          top: 0,
+          color: 'white',
+          display: isDebug ? 'block' : 'none',
+        }}
+      ></div>
     </>
   )
 }
