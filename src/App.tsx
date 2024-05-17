@@ -4,8 +4,8 @@ import './App.css'
 import { Card } from './Card'
 import { SeletedSponsorList } from './SeletedSponsorList'
 import { Camera } from './Camera'
-import { useGoogleApi } from './useGoogleApi'
-import { usePredictWorker } from './usePredictWorker'
+import { useGoogleApi } from './hooks/useGoogleApi'
+import { usePredictWorker } from './hooks/usePredictWorker'
 import { log } from './log'
 
 type CameraRef = ElementRef<typeof Camera>

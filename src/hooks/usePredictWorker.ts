@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { MessageType } from './workerTypes'
-import { ID, Match } from './types'
-import { log } from './log'
+import { MessageType } from '../workerTypes'
+import { ID, Match } from '../types'
+import { log } from '../log'
 
 export const usePredictWorker = () => {
   const [isModelLoad, setIsModelLoad] = useState(false)
@@ -18,7 +18,7 @@ export const usePredictWorker = () => {
     if (workerRef.current === null) {
       const time = performance.now()
 
-      workerRef.current = new Worker(new URL('./worker.ts', import.meta.url))
+      workerRef.current = new Worker(new URL('../worker.ts', import.meta.url))
 
       workerRef.current.onmessage = (e) => {
         const message = e.data as MessageType
