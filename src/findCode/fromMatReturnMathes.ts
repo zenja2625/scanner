@@ -75,7 +75,7 @@ export const fromMatReturnMathes = (
 
   postMessage({
     type: 'TensorflowMemory',
-    value: `Tensors: ${tf.memory().numTensors} Bytes ${tf.memory().numBytes}`,
+    value: `${argMax.map(num => num > 9 ? 'X' : num).join(' ')}`,
   })
 
   let predictStartIndex = 0
