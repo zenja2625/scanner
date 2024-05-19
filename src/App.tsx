@@ -171,6 +171,7 @@ const App = () => {
                         const matches = await searchContours(src, ids)
 
                         const sponsors: Array<Sponsor> = []
+
                         for (let i = 0; i < 3 && i < matches.length; i++) {
                           const element = matches[i]
 
@@ -181,6 +182,8 @@ const App = () => {
                           })
                         }
 
+                        if (!sponsors.length) continue
+                        
                         setMatchSponsors(sponsors.reverse())
 
                         if (
