@@ -6,12 +6,12 @@ const getDistance = (x1: number, y1: number, x2: number, y2: number) =>
 export const rectsListIsAfterLine = (
     list: ASD[],
     angle: number,
-    getFitstLineY: (x: number) => number
+    getFirstLineY: (x: number) => number
 ) => {
     const rect = list[0].rect
 
     const lineX = angle > 0 ? rect.x + rect.width : rect.x
-    const lineY = getFitstLineY(lineX)
+    const lineY = getFirstLineY(lineX)
 
     return lineY < rect.y && getDistance(rect.x, rect.y, lineX, lineY) <= rect.height * 1.5
 }

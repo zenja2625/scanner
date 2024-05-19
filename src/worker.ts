@@ -1,7 +1,7 @@
 import cv from 'opencv-ts'
 import * as tf from '@tensorflow/tfjs'
 import { MessageType } from './workerTypes'
-import { fromMatReturnMathes } from './findCode'
+import { fromMatReturnMatches } from './findCode'
 
 declare function postMessage(message: MessageType): void
 
@@ -39,9 +39,9 @@ onmessage = (e) => {
     case 'FindMatches':
       try {
         const src = cv.matFromArray(200, 200, cv.CV_8UC4, message.src)
-        const { matches, draw } = fromMatReturnMathes(src, model, message.ids)
+        const { matches, draw } = fromMatReturnMatches(src, model, message.ids)
         postMessage({
-          type: 'ReturnMathes',
+          type: 'ReturnMatches',
           matches: matches,
           draw: Array.from(draw.data),
         } as MessageType)

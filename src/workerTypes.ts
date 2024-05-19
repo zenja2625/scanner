@@ -13,7 +13,7 @@ export type MessageType =
       ids: ID[]
     }
   | {
-      type: 'ReturnMathes'
+      type: 'ReturnMatches'
       matches: {
         number: number[]
         match: number

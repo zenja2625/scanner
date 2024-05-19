@@ -2,7 +2,7 @@ import { FC, useLayoutEffect } from 'react'
 import { Card } from './Card'
 import { Sponsor } from './types'
 
-export const SeletedSponsorList: FC<{
+export const SelectedSponsorList: FC<{
     sponsors: Array<Sponsor>
     removeSponsor: (sponsorCode: string) => void
     clear: () => void

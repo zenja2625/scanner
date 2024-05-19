@@ -8,13 +8,13 @@ import {
   rectsListIsAfterLine,
   resizeAndReturnData,
   sortRectsByLines,
-} from '../findCode'
+} from '.'
 import { ID } from '../types'
 import { MessageType } from '../workerTypes'
 
 declare function postMessage(message: MessageType): void
 
-export const fromMatReturnMathes = (
+export const fromMatReturnMatches = (
   src: Mat,
   model: tf.LayersModel,
   ids: ID[]

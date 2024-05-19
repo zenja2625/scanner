@@ -2,7 +2,7 @@ import { ElementRef, useEffect, useRef, useState } from 'react'
 import { ID, Sponsor } from './types'
 import './App.css'
 import { Card } from './Card'
-import { SeletedSponsorList } from './SeletedSponsorList'
+import { SelectedSponsorList } from './SelectedSponsorList'
 import { Camera } from './Camera'
 import { useGoogleApi } from './hooks/useGoogleApi'
 import { usePredictWorker } from './hooks/usePredictWorker'
@@ -10,7 +10,7 @@ import { log } from './log'
 
 type CameraRef = ElementRef<typeof Camera>
 
-function App() {
+const App = () => {
   const stopLoopRef = useRef(false)
   const [isRecord, setIsRecord] = useState(false)
 
@@ -243,7 +243,7 @@ function App() {
         </div>
       </div>
       {listOpen && (
-        <SeletedSponsorList
+        <SelectedSponsorList
           clear={() => setSponsors([])}
           removeSponsor={(sponsorCode) =>
             setSponsors((prev) =>

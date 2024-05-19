@@ -33,7 +33,7 @@ export const usePredictWorker = () => {
 
             setIsModelLoad(true)
             break
-          case 'ReturnMathes':
+          case 'ReturnMatches':
             const canvas: HTMLCanvasElement | null = document.getElementById(
               'showMatches'
             ) as HTMLCanvasElement
