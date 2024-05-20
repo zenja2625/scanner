@@ -182,39 +182,39 @@ const App = () => {
                           })
                         }
 
-                        if (!sponsors.length) continue
-                        
-                        setMatchSponsors(sponsors.reverse())
+                        if (sponsors.length) {
+                          setMatchSponsors(sponsors.reverse())
 
-                        if (
-                          matches[0] &&
-                          matches[0].number.join('') ===
-                            matches[0].recognizeString
-                        ) {
-                          setSponsors((prev) => {
-                            const element = matches[0]
-                            const index = prev.findIndex(
-                              (item) => item.number === element.number.join('')
-                            )
+                          if (
+                            matches[0] &&
+                            matches[0].number.join('') ===
+                              matches[0].recognizeString
+                          ) {
+                            setSponsors((prev) => {
+                              const element = matches[0]
+                              const index = prev.findIndex(
+                                (item) =>
+                                  item.number === element.number.join('')
+                              )
 
-                            if (index === -1) {
-                              return [
-                                ...prev,
-                                {
-                                  number: element.number.join(''),
-                                  name:
-                                    element.name.split(' ').pop() ||
-                                    element.name,
-                                  phone: element.phone,
-                                },
-                              ]
-                            }
+                              if (index === -1) {
+                                return [
+                                  ...prev,
+                                  {
+                                    number: element.number.join(''),
+                                    name:
+                                      element.name.split(' ').pop() ||
+                                      element.name,
+                                    phone: element.phone,
+                                  },
+                                ]
+                              }
 
-                            return prev
-                          })
+                              return prev
+                            })
+                          }
                         }
                       }
-
                       await log(
                         Math.floor(1000 / (performance.now() - time)) + ' fps'
                       )
